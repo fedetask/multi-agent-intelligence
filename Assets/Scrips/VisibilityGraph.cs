@@ -28,11 +28,9 @@ public class VisibilityGraph : MonoBehaviour {
         int cols = pad_traversability.GetLength(1);
         List<Vector3> valid_corners = new List<Vector3>();
 
-        for (int r = 0; r < rows; r++) {
-            if (r == 0 || r == rows - 1) { continue; } // Skip row padding
-            for (int c = 0; c < cols; c++) {
-                if (c == 0 || c == cols - 1) { continue; } // Skip column padding
-                if (pad_traversability[r, c] == 0.0f) { continue; } // Empty cells don't have borders
+        for (int r = 1; r < rows -1; r++) {
+            for (int c = 1; c < cols - 1; c++) {
+                if (pad_traversability[r, c] == 0.0f) { continue; } // Empty cells don't have corners
                 // A corner of a cell in a given direction is valid iff
                 // - The cell that contains it and the two adjacent cells that also touch the generating cell are free
                 // - The cell that contains it is free and the two adjacent cells that also touch the generating cell are full
@@ -42,9 +40,9 @@ public class VisibilityGraph : MonoBehaviour {
                     if (pad_traversability[r + corner_steps[i], c + corner_steps[i + 1]] == 1.0f) { continue; } // Corner is in a full cell
                     // The two adjacent cells that also touch the generating cell are
                     Cell c1 = new Cell(r + adjacent_steps[i], c + adjacent_steps[i + 1]);
-                    Cell c2 = new Cell(r + adjacent_steps[i + 1], c+ adjacent_steps[i + 2]);
+                    Cell c2 = new Cell(r + adjacent_steps[i + 1], c + adjacent_steps[i + 2]);
                     if ((pad_traversability[c1.row, c1.col] == 0.0f && pad_traversability[c2.row, c2.col] == 0.0f)
-                        || (pad_traversability[c1.row, c1.col] == 0.0f && pad_traversability[c2.row, c2.col] == 0.0f)) { // Both free or both full
+                        || (pad_traversability[c1.row, c1.col] == 1.0f && pad_traversability[c2.row, c2.col] == 1.0f)) { // Both free or both full
                         Vector3 center = new Vector3(myInfo.x_low + (r - 1 + 0.5f) * x_step, y, myInfo.z_low + (c - 1 + 0.5f) * z_step);
                         float x = center.x + corner_steps[i] * (x_step / 2 + margin / Mathf.Sqrt(2));
                         float z = center.z + corner_steps[i + 1] * (z_step / 2 + margin / Mathf.Sqrt(2));
@@ -65,8 +63,8 @@ public class VisibilityGraph : MonoBehaviour {
         corners.Add(destination);
         corners.AddRange(visibility_corners);
 
-        float[, ] adjancenies = GetAdjacencyMatrix(corners);
-        List<int> path_indexes = Dijkstra.get_shortest_path(adjancenies);
+        float[, ] adjacencies = GetAdjacencyMatrix(corners);
+        List<int> path_indexes = Dijkstra.get_shortest_path(adjacencies);
         foreach (int path_index in path_indexes) {
             path_points.Add(corners[path_index]);
         }
@@ -104,10 +102,10 @@ public class VisibilityGraph : MonoBehaviour {
     }
 
     private float[,] GetPaddedTraversability(float[,] traversability) {
-        float[,] res = new float[traversability.GetLength(0)+1, traversability.GetLength(1)+1];
-        for (int r = 1; r < traversability.GetLength(0); r++) {
-            for (int c = 1; c < traversability.GetLength(1); c++) {
-                res[r, c] = traversability[r-1, c-1];
+        float[,] res = new float[traversability.GetLength(0)+2, traversability.GetLength(1)+2];
+        for (int r = 0; r < traversability.GetLength(0); r++) {
+            for (int c = 0; c < traversability.GetLength(1); c++) {
+                res[r + 1, c + 1] = traversability[r, c];
             }
         }
         return res;
