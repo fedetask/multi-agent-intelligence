@@ -89,7 +89,7 @@ namespace UnityStandardAssets.Vehicles.Car
 
 
             // this is how you control the car
-            Debug.Log("Steering:" + steering + " Acceleration:" + acceleration);
+            //Debug.Log("Steering:" + steering + " Acceleration:" + acceleration);
             m_Car.Move(steering, acceleration, acceleration, 0f);
             //m_Car.Move(0f, -1f, 1f, 0f);
 
