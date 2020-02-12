@@ -12,6 +12,8 @@ Assets/*
 !/Assets/Resources/Text
 !/Assets/Resources/Text/*
 /Assets/Resources/Text/Traj*
+!/Assets/Scenes
+!/Assets/Scenes/*
 
 !/python~
 !/python~/*
