@@ -85,11 +85,11 @@ namespace UnityStandardAssets.Vehicles.Car
             float grid_center_x = terrain_manager.myInfo.get_x_pos(i);
             float grid_center_z = terrain_manager.myInfo.get_z_pos(j);
 
-            Debug.DrawLine(transform.position, new Vector3(grid_center_x, 0f, grid_center_z));
+            //Debug.DrawLine(transform.position, new Vector3(grid_center_x, 0f, grid_center_z));
 
 
             // this is how you control the car
-            Debug.Log("Steering:" + steering + " Acceleration:" + acceleration);
+            //Debug.Log("Steering:" + steering + " Acceleration:" + acceleration);
             m_Car.Move(steering, acceleration, acceleration, 0f);
             //m_Car.Move(0f, -1f, 1f, 0f);
 
