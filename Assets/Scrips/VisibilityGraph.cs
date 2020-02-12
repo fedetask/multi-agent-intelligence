@@ -14,6 +14,9 @@ public class VisibilityGraph : MonoBehaviour {
     float[,] adjacency_matrix;
 	void Start () {
         visibility_corners = GetCorners();
+        Debug.Log("starting visibility");
+        adjacency_matrix = GetAdjacencyMatrix(visibility_corners);
+
 	}
 
 
@@ -44,7 +47,7 @@ public class VisibilityGraph : MonoBehaviour {
                     Cell c1 = new Cell(r + adjacent_steps[i], c + adjacent_steps[i + 1]);
                     Cell c2 = new Cell(r + adjacent_steps[i + 1], c+ adjacent_steps[i + 2]);
                     if ((pad_traversability[c1.row, c1.col] == 0.0f && pad_traversability[c2.row, c2.col] == 0.0f)
-                        || (pad_traversability[c1.row, c1.col] == 0.0f && pad_traversability[c2.row, c2.col] == 0.0f)) { // Both free or both full
+                        || (pad_traversability[c1.row, c1.col] == 1.0f && pad_traversability[c2.row, c2.col] == 1.0f)) { // Both free or both full
                         Vector3 center = new Vector3(myInfo.x_low + (r - 1 + 0.5f) * x_step, y, myInfo.z_low + (c - 1 + 0.5f) * z_step);
                         float x = center.x + corner_steps[i] * (x_step / 2 + margin / Mathf.Sqrt(2));
                         float z = center.z + corner_steps[i + 1] * (z_step / 2 + margin / Mathf.Sqrt(2));
@@ -54,6 +57,9 @@ public class VisibilityGraph : MonoBehaviour {
                 }
             }
         }
+        Debug.Log("Finished creating corners");
+        Debug.Log("We have this many corners " + valid_corners.Count);
+
         return valid_corners;
     }
 
@@ -61,8 +67,8 @@ public class VisibilityGraph : MonoBehaviour {
         // float time = Time.time;
         List<Vector3> path_points = new List<Vector3>();
         List<Vector3> corners = new List<Vector3>();
-        corners.Add(source);
-        corners.Add(destination);
+        //corners.Add(source);
+        //corners.Add(destination);
         corners.AddRange(visibility_corners);
 
         float[, ] adjancenies = GetAdjacencyMatrix(corners);
@@ -79,6 +85,7 @@ public class VisibilityGraph : MonoBehaviour {
 
     float[, ] GetAdjacencyMatrix(List<Vector3> corners) {
         float[, ] adjancenies = new float[corners.Count, corners.Count];
+        var mask =  (1 << LayerMask.NameToLayer("CubeWalls"));
         for (int i = 0; i < corners.Count; i++) {
             for (int j = i + 1; j < corners.Count; j++) {
                 Vector3 direction = corners[j] - corners[i];
@@ -87,7 +94,7 @@ public class VisibilityGraph : MonoBehaviour {
                 int[] signs = new int[] {-1, 0, 1};
                 bool free = true;
                 foreach (int sign in signs) {
-                    if (Physics.Linecast(corners[i] + sign * step * normal, corners[j] + sign * step * normal)) {
+                    if (Physics.Linecast(corners[i] + sign * step * normal, corners[j] + sign * step * normal,mask)) {
                         adjancenies[i, j] = -1;
                         adjancenies[j, i] = -1;
                         free = false;
@@ -95,6 +102,8 @@ public class VisibilityGraph : MonoBehaviour {
                 }
                 if (free) {
                     float dist = Vector3.Distance(corners[i], corners[j]);
+                    Debug.Log("I am in here");
+                    Debug.DrawLine(corners[i], corners[j], Color.cyan, 100f);
                     adjancenies[i, j] = dist;
                     adjancenies[j, i] = dist;
                 }

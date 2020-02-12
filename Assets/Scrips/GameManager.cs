@@ -48,6 +48,7 @@ public class GameManager : MonoBehaviour {
             destructable_script.is_weak = weak_turrets;
             gatlinggun_script = (GatlingGun)turret_clone.GetComponent(typeof(GatlingGun));
             gatlinggun_script.is_long_range = long_range_turrets;
+            turret_clone.layer = LayerMask.NameToLayer("Ignore Raycast");
             turret_list.Add(turret_clone);
         }
 
