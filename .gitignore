@@ -11,6 +11,7 @@ Assets/*
 /Assets/Resources/*
 !/Assets/Resources/Text
 !/Assets/Resources/Text/*
+/Assets/Resources/Text/Traj*
 
 !/python~
 !/python~/*
