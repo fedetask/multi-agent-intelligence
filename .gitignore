@@ -7,8 +7,15 @@
 Assets/*
 !/Assets/Scrips
 !/Assets/Scrips/*
+!/Assets/Resources
+/Assets/Resources/*
+!/Assets/Resources/Text
+!/Assets/Resources/Text/*
+
 !/python~
 !/python~/*
+
+
 
 python~/bin
 python~/bin*
