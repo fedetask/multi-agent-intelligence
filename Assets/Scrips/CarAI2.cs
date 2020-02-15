@@ -16,11 +16,27 @@ namespace UnityStandardAssets.Vehicles.Car
 
         public GameObject[] friends;
         public GameObject[] enemies;
+        public GameObject visibility_game_object;
+        public VisibilityGraph visibility;
+
+        public List<Vector3> visibility_graph;
+        public List<Vector3> verbose_path; //verbose ALL of the nodes of the TSP path
+        public List<Vector3> path; //non verbose only containts the nodes within the TSP path that belongs to the dominating sent
+
+        public int[] seen_thus_far; //nodes we have seen thus far (indeces of nodes)
+
+
+        public int next_index = 1; //start at 1, ignore the starting position of the our cars
 
         private void Start()
         {
             // get the car controller
             m_Car = GetComponent<CarController>();
+            visibility = visibility_game_object.GetComponent<VisibilityGraph>();
+            visibility_graph = visibility.visibility_corners;
+            seen_thus_far = new int[visibility_graph.Count];
+            verbose_path = visibility.verbose_tsp_path;
+            path = visibility.tsp_path;
             terrain_manager = terrain_manager_game_object.GetComponent<TerrainManager>();
 
 
@@ -35,23 +51,93 @@ namespace UnityStandardAssets.Vehicles.Car
             // ...
         }
 
+        //Inspect the world around you. Store all the nodes you have seen
+        public void inspect()
+        {
+            Vector3 current_pos = transform.position;
+
+            for (int i=0; i< visibility_graph.Count; i++)
+            {
+                var mask = (1 << LayerMask.NameToLayer("CubeWalls")); // Take the mask corresponding to the layer with Name Cube Walls
+                bool ray = Physics.Linecast(current_pos, visibility_graph[i], mask);
+                if(!ray)
+                {
+                    seen_thus_far[i] = 1;
+                }
+            }
+        }
+
+        //Check whether you could steer towards the next point (if the car can drive in a straight line)
+        public bool check_for_line(int next)
+        {
+            var mask = (1 << LayerMask.NameToLayer("CubeWalls")); // Take the mask corresponding to the layer with Name Cube Walls
+            Vector3 current_pos = transform.position;
+            Vector3 direction = verbose_path[next] - current_pos;
+            Vector3 normal = new Vector3(-direction.z, direction.y, direction.x).normalized;
+            
+            float step = (visibility.margin - 0.1f) / 2;
+            int[] signs = new int[] { -1, 0, 1 };
+
+            bool free = true;
+            Debug.DrawLine(current_pos, verbose_path[next], Color.yellow, 100f);
+            RaycastHit ray;
+            foreach (int sign in signs)
+            {
+                if (Physics.Linecast(current_pos + sign * step * normal, verbose_path[next] + sign * step * normal,out ray,mask))
+                {
+                    //Debug.DrawLine(current_pos, ray.point, Color.yellow, 100f);
+                    free = false;
+                }
+            }
+
+            return free;
+        }
+
+        //Check whether you have seen all of the neighbours of the current goal.
+        //If you have, you can go to the next node (smoothing)
+        public bool move_to_next(int current)
+        {
+            bool result = true;
+
+            int index_of_current = visibility_graph.IndexOf(verbose_path[current]);
+
+            float[,] adj_matrix = visibility.get_matrix();
+
+            for (int i=0; i<adj_matrix.GetLength(0); i++)
+            {
+                if(adj_matrix[index_of_current,i]<float.MaxValue/2 && seen_thus_far[i]!=1)
+                {
+                    result = false;
+                    break;
+                }
+            }
+
+            return result;
+
+        }
 
         private void FixedUpdate()
         {
+            verbose_path = visibility.verbose_tsp_path;
 
+            //update what you have seen thus far
+            inspect();
 
             // Execute your path here
             // ...
-
-            Vector3 avg_pos = Vector3.zero;
-
-            foreach (GameObject friend in friends)
+            if (move_to_next(next_index) && check_for_line(next_index+1)) //If you seen all, and you can reach the next goal
             {
-                avg_pos += friend.transform.position;
+                next_index += 1;
             }
-            avg_pos = avg_pos / friends.Length;
-            Vector3 direction = (avg_pos - transform.position).normalized;
 
+            
+            Vector3 next_pos = verbose_path[next_index];
+
+          
+          
+            Vector3 direction = (next_pos - transform.position).normalized;
+
+            Debug.DrawLine(transform.position, next_pos, Color.white, 100f);
             bool is_to_the_right = Vector3.Dot(direction, transform.right) > 0f;
             bool is_to_the_front = Vector3.Dot(direction, transform.forward) > 0f;
 
@@ -79,20 +165,8 @@ namespace UnityStandardAssets.Vehicles.Car
                 acceleration = -1f;
             }
 
-            // this is how you access information about the terrain
-            int i = terrain_manager.myInfo.get_i_index(transform.position.x);
-            int j = terrain_manager.myInfo.get_j_index(transform.position.z);
-            float grid_center_x = terrain_manager.myInfo.get_x_pos(i);
-            float grid_center_z = terrain_manager.myInfo.get_z_pos(j);
-
-            //Debug.DrawLine(transform.position, new Vector3(grid_center_x, 0f, grid_center_z));
-
-
-            // this is how you control the car
-            //Debug.Log("Steering:" + steering + " Acceleration:" + acceleration);
             m_Car.Move(steering, acceleration, acceleration, 0f);
-            //m_Car.Move(0f, -1f, 1f, 0f);
-
+            
 
         }
     }

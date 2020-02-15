@@ -5,20 +5,32 @@ using UnityEngine;
 
 public class VisibilityGraph : MonoBehaviour {
 
-    public float margin = 4; 
+    public float margin = 4f; 
     public GameObject terrain_manager_game_object;
     TerrainManager terrain_manager;
-    
-	// Use this for initialization
 
-    List<Vector3> visibility_corners;
-    float[,] adjacency_matrix;
+    // Floyd - Warshal variables
+    public Vector3[,] next_node;
+    public float[,] min_distances;
+    int counter = 0;
+
+    // Use this for initialization
+
+    public List<Vector3> visibility_corners;
+    public float[,] adjacency_matrix;
+
+    public List<Vector3> tsp_path;
+    public List<Vector3> verbose_tsp_path;
+
 
     public List<Vector3> dominatingSet = new List<Vector3>();
 
 	void Start () {
         terrain_manager = terrain_manager_game_object.GetComponent<TerrainManager>();
+        Vector3 start_pos = terrain_manager.myInfo.start_pos;
+        
         visibility_corners = GetCorners();
+        visibility_corners.Add(start_pos);
         CorrectionCorners(visibility_corners);
         Debug.Log("starting visibility");
         adjacency_matrix = GetAdjacencyMatrix(visibility_corners);
@@ -27,8 +39,21 @@ public class VisibilityGraph : MonoBehaviour {
         foreach (Vector3 v in dominatingSet) {
             terrain_manager.DrawCircle(v, 5, 2);
         }
+
+        next_node = floyd_warshal(adjacency_matrix);
+
+        nearest_neighbour_tsp(start_pos);
+        
+        //draw_Path_between(dominatingSet[0], dominatingSet[1]);
+
     }
 
+
+    
+    public float[,] get_matrix()
+    {
+        return adjacency_matrix;
+    }
 
     public List<Vector3> GetCorners() {
         TerrainInfo myInfo = terrain_manager.myInfo;
@@ -106,21 +131,23 @@ public class VisibilityGraph : MonoBehaviour {
                 bool free = true;
                 foreach (int sign in signs) {
                     if (Physics.Linecast(corners[i] + sign * step * normal, corners[j] + sign * step * normal,mask)) {
-                        adjancenies[i, j] = -1;
-                        adjancenies[j, i] = -1;
+                        adjancenies[i, j] = float.MaxValue/2; // -1
+                        adjancenies[j, i] = float.MaxValue/2;
                         free = false;
                     }
                 }
-                if (free) {
+                if (free) 
+                {
                     float dist = Vector3.Distance(corners[i], corners[j]);
                     //Debug.Log("I am in here");
                     //Debug.DrawLine(corners[i], corners[j], Color.cyan, 100f);
-                   
+                    //Debug.DrawLine(corners[i], corners[j], Color.yellow, 100f);
                     adjancenies[i, j] = dist;
                     adjancenies[j, i] = dist;
                 }
             }
         }
+        print(adjancenies[5, 5]);
         return adjancenies;
     }
 
@@ -158,7 +185,7 @@ public class VisibilityGraph : MonoBehaviour {
                     }
                     
                     //Debug.Log("I am in here");
-                    //Debug.DrawLine(corners[i], corners[j], Color.cyan, 100f);
+                    //Debug.DrawLine(corners[i], corners[j], Color.yellow, 100f);
                 }
             }
         }
@@ -193,7 +220,7 @@ public class VisibilityGraph : MonoBehaviour {
 
             for (int i = 0; i < adjacency_matrix.GetLength(0); i++)
             {
-                if (adjacency_matrix[(int)isDominated[best_Candidate][0], i] >= 0f)
+                if (adjacency_matrix[(int)isDominated[best_Candidate][0], i] < float.MaxValue/2) //>=0
                 {
                     remaining_Nodes.Remove(visibility_graph[i]);
                     if (isDominated[visibility_graph[i]][1] !=1f)
@@ -222,7 +249,7 @@ public class VisibilityGraph : MonoBehaviour {
             
             for (int i=0; i<adjacency_matrix.GetLength(0); i++)
             {
-                if(adjacency_matrix[(int)isDominated[corner][0], i]>=0f && isDominated[corner][1]==0f)
+                if(adjacency_matrix[(int)isDominated[corner][0], i]<float.MaxValue/2 && isDominated[corner][1]==0f) // >=0
                 {
                     numberOfNeigbours += 1;
                 }
@@ -236,4 +263,209 @@ public class VisibilityGraph : MonoBehaviour {
         }
         return candidate;
     }
+
+
+    //Floyd Warshal Part of Code:
+
+
+    //This method (and print solution) was taked from geeksforgeeks.
+    //I adjusted it so we can retrieve the path as well
+    public Vector3[,] floyd_warshal(float[,] vis_graph)
+    {
+        //V: number of nodes in graph
+        int V = vis_graph.GetLength(0);
+        float[,] dist = new float[V, V];
+        int i, j, k;
+        Vector3[,] next = new Vector3[V,V];
+        // Initialize the solution matrix  
+        // same as input graph matrix 
+        // Or we can say the initial  
+        // values of shortest distances 
+        // are based on shortest paths  
+        // considering no intermediate 
+        // vertex 
+        for (i = 0; i < V; i++)
+        {
+            for (j = 0; j < V; j++)
+            {
+                //dist[i, j] = (vis_graph[i, j] < 0f ? float.MaxValue : vis_graph[i, j]);
+                dist[i, j] = vis_graph[i, j];
+                if (vis_graph[i, j] < float.MaxValue / 2) //>=0
+                {
+                    next[i, j] = visibility_corners[j]; //If there is a connection between (i,j) then next node from i to j is j
+                }
+                
+            }
+        }
+
+        for (i=0; i<V; i++)
+        {
+            next[i, i] = visibility_corners[i]; //Initialization: If you wanna go from i to i, you use i
+        }
+
+        /* Add all vertices one by one to  
+        the set of intermediate vertices. 
+        ---> Before start of a iteration, 
+             we have shortest distances 
+             between all pairs of vertices 
+             such that the shortest distances 
+             consider only the vertices in 
+             set {0, 1, 2, .. k-1} as  
+             intermediate vertices. 
+        ---> After the end of a iteration,  
+             vertex no. k is added 
+             to the set of intermediate 
+             vertices and the set 
+             becomes {0, 1, 2, .. k} */
+        for (k = 0; k < V; k++)
+        {
+            // Pick all vertices as source 
+            // one by one 
+            for (i = 0; i < V; i++)
+            {
+                // Pick all vertices as destination 
+                // for the above picked source 
+                for (j = 0; j < V; j++)
+                {
+                    // If vertex k is on the shortest 
+                    // path from i to j, then update 
+                    // the value of dist[i][j] 
+                    if (dist[i, k] + dist[k, j] < dist[i, j])
+                    {
+                        dist[i, j] = dist[i, k] + dist[k, j];
+                        next[i, j] = next[i, k]; // Optimal path goes through k first, so we just need to take the same step towards k first
+                    }
+                }
+            }
+        }
+
+        // Print the shortest distance matrix 
+        //printSolution(dist);
+        min_distances = dist;
+        return next;
+    }
+
+    //'Usefull' just for debugging. In the end though, not so useful, since the graph is rather large ^^
+    void printSolution(float[,] dist)
+    {
+        int V = dist.GetLength(0);
+        Debug.Log("Following matrix shows the shortest " +
+                        "distances between every pair of vertices");
+        for (int i = 0; i < V; ++i)
+        {
+            for (int j = 0; j < V; ++j)
+            {
+                if (dist[i, j] < 0)
+                {
+                    Debug.Log("INF ");
+                }
+                else
+                {
+                    Debug.Log(dist[i, j] + " ");
+                }
+            }
+            Debug.Log("");
+        }
+    }
+
+    //Utilized for debugging AND to populate the verbose version of the path
+    //This method finds (and draws) the path from node u to node v, by iteratively
+    //using our next[u,v] Vectror3 Array.
+    public void draw_Path_between(Vector3 u, Vector3 v)
+    {
+        List<Vector3> path = new List<Vector3>();
+        path.Add(u); //The path begins with u
+        int index_of_v = visibility_corners.IndexOf(v);
+        while (u!=v) //until we reach v
+        {
+            int index_of_u = visibility_corners.IndexOf(u);
+
+            u = next_node[index_of_u, index_of_v];
+            verbose_tsp_path.Add(u);
+            path.Add(u);
+        }
+
+        //This is mostly for debugging, you can see the path with alternating colors 
+        //(so that you have a better understanding of where the agent is moving
+        for(int i =0; i<path.Count-1;i++)
+        {
+            if (counter % 2 == 0)
+            {
+                //Debug.DrawLine(path[i], path[i + 1], Color.cyan, 100f);
+            }
+            else
+            {
+                //Debug.DrawLine(path[i], path[i + 1], Color.red, 100f);
+            }
+            
+        }
+        counter += 1;
+    }
+    
+    //Gives you the next point along the dominating set
+    //It ignores the nodes that are seen[node]=0f
+    //The next one is that which is nearer based on the distance
+    //found in the floyd algorithm
+    public (Vector3,int) tsp_next(int from, float[] seen)
+    {
+        float closest_distance = float.MaxValue;
+        Vector3 closest_node = new Vector3();
+        int index = 0;
+        for (int i =0; i <visibility_corners.Count; i++)
+        {
+            if (seen[i]==1f && min_distances[from,i] < closest_distance)
+            {
+                closest_distance = min_distances[from, i];
+                index = i;
+                closest_node = visibility_corners[i];
+            }
+        }
+        return (closest_node, index);
+    }
+
+    //Creates the TSP graph, draws it and populates the verbose path
+    public void nearest_neighbour_tsp(Vector3 start)
+    {
+        tsp_path = new List<Vector3>();
+
+        float[] seen = new float[visibility_corners.Count];
+
+        int index_of_u = visibility_corners.IndexOf(start);
+        Vector3 from = start;
+        
+        //initialize seen. None v is ignored iff v is not in the dominating set, or has already been visited
+        for (int i=0; i<dominatingSet.Count;i++)
+        {
+            int index_of_this_node = visibility_corners.IndexOf(dominatingSet[i]);
+            seen[index_of_this_node] = 1f; // 1: candidate next point, 0: not candidate
+        }
+        seen[index_of_u] = 0f; //we have just saw it
+        tsp_path.Add(start); //add the start to the non verbose path
+        verbose_tsp_path.Add(start); //and in the verbose
+        while(tsp_path.Count<=dominatingSet.Count) //until we populated the path with all the nodes
+        {
+            var tsp_info = tsp_next(index_of_u, seen); //give me the next node
+            Vector3 best_next = tsp_info.Item1;
+            seen[tsp_info.Item2] = 0f;
+           
+            from = best_next;
+            tsp_path.Add(best_next); //note how we add only the final node, and not the inbetween in the non verbose path
+            index_of_u = visibility_corners.IndexOf(from);
+        }
+
+        for(int i =0; i<tsp_path.Count-1;i++)
+        {
+            draw_Path_between(tsp_path[i], tsp_path[i+1]); //Here, we populate the verbose path
+        }
+
+        for (int i = 0; i < verbose_tsp_path.Count-1; i++)
+        {
+            //draw_Path_between(verbose_tsp_path[i], verbose_tsp_path[i + 1]);
+            Debug.DrawLine(verbose_tsp_path[i], verbose_tsp_path[i + 1], Color.red, 100f); //debugging: see the path
+        }
+        Debug.Log("path size " + verbose_tsp_path.Count);
+
+
+    }
+
 }
