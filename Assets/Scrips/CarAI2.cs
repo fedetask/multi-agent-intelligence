@@ -14,6 +14,14 @@ namespace UnityStandardAssets.Vehicles.Car
         public GameObject terrain_manager_game_object;
         TerrainManager terrain_manager;
 
+        public float crash_timer = 0f;
+        public float crash_timer_threshold = 4f;
+
+        public bool has_crashed = false;
+        public float crash_correction_timer = 4f;
+
+        public float current_speed;
+
         public GameObject[] friends;
         public GameObject[] enemies;
         public GameObject visibility_game_object;
@@ -25,7 +33,7 @@ namespace UnityStandardAssets.Vehicles.Car
 
         public int[] seen_thus_far; //nodes we have seen thus far (indeces of nodes)
 
-
+        
         public int next_index = 1; //start at 1, ignore the starting position of the our cars
 
         private void Start()
@@ -39,7 +47,7 @@ namespace UnityStandardAssets.Vehicles.Car
             path = visibility.tsp_path;
             terrain_manager = terrain_manager_game_object.GetComponent<TerrainManager>();
 
-
+            current_speed = m_Car.CurrentSpeed;
             // note that both arrays will have holes when objects are destroyed
             // but for initial planning they should work
             friends = GameObject.FindGameObjectsWithTag("Player");
@@ -55,7 +63,7 @@ namespace UnityStandardAssets.Vehicles.Car
         public void inspect()
         {
             Vector3 current_pos = transform.position;
-
+            current_speed = m_Car.CurrentSpeed;
             for (int i=0; i< visibility_graph.Count; i++)
             {
                 var mask = (1 << LayerMask.NameToLayer("CubeWalls")); // Take the mask corresponding to the layer with Name Cube Walls
@@ -133,16 +141,53 @@ namespace UnityStandardAssets.Vehicles.Car
             
             Vector3 next_pos = verbose_path[next_index];
 
-          
-          
-            Vector3 direction = (next_pos - transform.position).normalized;
+            Vector3 current_direction = transform.forward.normalized; //vector facing forward from the car
+
+            Vector3 direction = (next_pos - transform.position).normalized; //vector showcasing desired orientation towards next goal
 
             Debug.DrawLine(transform.position, next_pos, Color.white, 100f);
-            bool is_to_the_right = Vector3.Dot(direction, transform.right) > 0f;
-            bool is_to_the_front = Vector3.Dot(direction, transform.forward) > 0f;
+            
+            //bool is_to_the_right = Vector3.Dot(direction, transform.right) > 0f;
+            //bool is_to_the_front = Vector3.Dot(direction, transform.forward) > 0f;
 
-            float steering = 0f;
-            float acceleration = 0;
+
+            //left or right can be determined by the sign outer producte current_direction x direction
+            float direction_angle = Vector3.Angle(current_direction, direction) * Mathf.Sign(-current_direction.x * direction.z + current_direction.z * direction.x);
+
+            float steering; //steering between -1,1 (full left - full right)
+          
+            float acceleration; //acceleration between -1,1 (full reverse - full ahead)
+
+            float direction_of_acceleration = Mathf.Clamp(Vector3.Dot(current_direction, direction), -1, 1); //this variable determines whether we reverse or not
+                                                                                                             //obtuse angle -> reverse, acute angle->forward 
+
+            if (Mathf.Abs(direction_of_acceleration)<0.1f) //if we are about ~ 90 degrees angle, prefer going forward
+            {
+                direction_of_acceleration = 0f;
+            }
+
+            if (has_crashed) //If we crashed, time to correct it
+            {
+                crash_correction_timer -= Time.deltaTime; //start counting down
+                direction_of_acceleration = -direction_of_acceleration; //Obviously, what we are doing atm does not work: try going the opposite way!
+
+                if (crash_correction_timer <= 0) //after we corrected for enough time
+                {
+                    crash_correction_timer = 5f; //reset the correction timer
+                    has_crashed = false; //we are no longer in the crashing phase
+                }
+            }
+            
+            acceleration = Mathf.Sign(direction_of_acceleration); //1 if we go forward, -1 if we wanna reverse
+
+
+            /* Not needed anymore. I kept it just in case.
+            if (direction_of_acceleration>=0)
+            {
+                is_to_the_front = true;
+            }
+            else
+            { is_to_the_front = false; }
 
             if (is_to_the_right && is_to_the_front)
             {
@@ -165,9 +210,35 @@ namespace UnityStandardAssets.Vehicles.Car
                 acceleration = -1f;
             }
 
+            */
+           
+            if(current_speed<1f) //If we are going really slow, we very likely crashed -> start counting!
+            {
+                crash_timer += Time.deltaTime; //start counting
+
+                if(crash_timer>crash_timer_threshold) //if we are going slow for a long enough time
+                {
+                    has_crashed = true; //we crashed
+
+                }
+            }
+            else
+            {
+                crash_timer = 0f; //else, all cool/false alarm, reset the timer
+            }
+
+            //If we plan on going in reverse (sign of direction of acceleration), then we need to invert our steering
+            //Also, clamp it betwee -1 and 1
+            steering = Mathf.Clamp(direction_angle, -m_Car.m_MaximumSteerAngle, m_Car.m_MaximumSteerAngle) / m_Car.m_MaximumSteerAngle*Mathf.Sign(direction_of_acceleration);
+            
+            if (Mathf.Abs(steering) < 0.2f) //We are 'close enough' to the correct movement
+                {
+                    //if it is too small, don't do it
+                    steering = 0f;
+                }
+             
             m_Car.Move(steering, acceleration, acceleration, 0f);
             
-
         }
     }
 }

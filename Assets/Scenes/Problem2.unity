@@ -10775,6 +10775,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   terrain_manager_game_object: {fileID: 342108197}
+  crash_timer: 0
+  crash_timer_threshold: 1
+  has_crashed: 0
+  crash_correction_timer: 5
+  current_speed: 0
   friends: []
   enemies: []
   visibility_game_object: {fileID: 0}
@@ -34579,6 +34584,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   terrain_manager_game_object: {fileID: 342108197}
+  crash_timer: 0
+  crash_timer_threshold: 1
+  has_crashed: 0
+  crash_correction_timer: 5
+  current_speed: 0
   friends: []
   enemies: []
   visibility_game_object: {fileID: 0}
@@ -77824,6 +77834,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   terrain_manager_game_object: {fileID: 342108197}
+  crash_timer: 0
+  crash_timer_threshold: 2
+  has_crashed: 0
+  crash_correction_timer: 2
+  current_speed: 0
   friends: []
   enemies: []
   visibility_game_object: {fileID: 733356562}
