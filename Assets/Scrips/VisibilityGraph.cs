@@ -49,14 +49,11 @@ public class VisibilityGraph : MonoBehaviour {
         GeneticTSP geneticTSP = new GeneticTSP(visibility_corners, dominatingSet, min_distances, start_pos, 3);
         System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
         stopwatch.Start();
-        geneticTSP.Optimize(1000);
+        geneticTSP.Optimize(4000);
         stopwatch.Stop();
         Debug.Log("Genetic computation: "+stopwatch.Elapsed.Seconds+"s "+stopwatch.Elapsed.Milliseconds);
         Paths best = geneticTSP.GetBest();
-        Debug.Log("Best count "+best.Count());
-        Debug.Log("     - path 1 "+best.GetPath(0).Count);
-        Debug.Log("     - path 2 "+best.GetPath(1).Count);
-        Debug.Log("     - path 3 "+best.GetPath(2).Count);
+        Debug.Log("Best path cost "+best.max_cost);
         DrawMultiAgentPaths(best);
     }
 
