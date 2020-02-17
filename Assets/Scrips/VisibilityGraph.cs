@@ -30,8 +30,9 @@ public class VisibilityGraph : MonoBehaviour {
         terrain_manager = terrain_manager_game_object.GetComponent<TerrainManager>();
         start_pos = terrain_manager.myInfo.start_pos;
         
-        visibility_corners = GetCorners();
+        visibility_corners = new List<Vector3>();
         visibility_corners.Add(start_pos);
+        visibility_corners.AddRange(GetCorners());
         CorrectionCorners(visibility_corners);
         Debug.Log("starting visibility");
         adjacency_matrix = GetAdjacencyMatrix(visibility_corners);
@@ -45,9 +46,17 @@ public class VisibilityGraph : MonoBehaviour {
 
         nearest_neighbour_tsp(start_pos);
         
-        GeneticTSP geneticTSP = new GeneticTSP(visibility_corners, dominatingSet, adjacency_matrix, start_pos, 3);
-        geneticTSP.Optimize(100);
+        GeneticTSP geneticTSP = new GeneticTSP(visibility_corners, dominatingSet, min_distances, start_pos, 3);
+        System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
+        stopwatch.Start();
+        geneticTSP.Optimize(1000);
+        stopwatch.Stop();
+        Debug.Log("Genetic computation: "+stopwatch.Elapsed.Seconds+"s "+stopwatch.Elapsed.Milliseconds);
         Paths best = geneticTSP.GetBest();
+        Debug.Log("Best count "+best.Count());
+        Debug.Log("     - path 1 "+best.GetPath(0).Count);
+        Debug.Log("     - path 2 "+best.GetPath(1).Count);
+        Debug.Log("     - path 3 "+best.GetPath(2).Count);
         DrawMultiAgentPaths(best);
     }
 
@@ -55,6 +64,7 @@ public class VisibilityGraph : MonoBehaviour {
         Color[] colors = new Color[] {Color.yellow, Color.green, Color.blue, Color.white, Color.black};
         for (int path_idx = 0; path_idx < paths.Count(); path_idx++) {
             List<int> path = paths.GetPath(path_idx);
+            if (path.Count == 0) { continue; }
             Debug.DrawLine(start_pos, visibility_corners[path[0]], colors[path_idx], 100f);
             for (int i = 0; i < path.Count - 1; i++) {
                 Debug.DrawLine(visibility_corners[path[i]], visibility_corners[path[i + 1]], colors[path_idx], 100f);
