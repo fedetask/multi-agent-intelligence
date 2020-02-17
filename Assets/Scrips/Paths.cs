@@ -75,7 +75,7 @@ public class Paths
             int point_index = random.Next(remaining_points.Count);
             int point = remaining_points[point_index];
             paths[path_index].Add(point);
-            remaining_points.Remove(point);
+            remaining_points.RemoveAt(point_index);
             added++;
         }
     }
@@ -93,11 +93,13 @@ public class Paths
         float[] costs = new float[paths.Count];
         for (int i = 0; i < paths.Count; i++) {
             List<int> path = paths[i];
-            float length = distances[0, path[0]]; // Distance from start (alwas index 0) to first point of path
-            for (int j = 0; j < path.Count - 1; j++) { // Compute length of path
-                length += distances[j, j + 1];
+            if (path.Count > 0) {
+                float length = distances[0, path[0]]; // Distance from start (alwas index 0) to first point of path
+                for (int j = 0; j < path.Count - 1 && path.Count > 1; j++) { // Compute length of path
+                    length += distances[j, j + 1];
+                }
+                costs[i] = length;
             }
-            costs[i] = length;
         }
         return costs;
     }
