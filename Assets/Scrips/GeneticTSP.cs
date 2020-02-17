@@ -10,7 +10,7 @@ public class GeneticTSP
     int nagents;
     List<Paths> population;
     int population_size = 500;
-    float selection_size = 0.3f;
+    float selection_size = 0.35f;
     float start_mutation_prob = 0.2f;
     float[,] min_distances;
     System.Random random;
@@ -44,7 +44,7 @@ public class GeneticTSP
             GenerateOffspring();
             Mutate();
             Migrate();
-            mutation_prob *= 0.8f;
+            mutation_prob *= 0.99f;
         }
         return GetBest();
     }
