@@ -24,10 +24,11 @@ public class VisibilityGraph : MonoBehaviour {
 
 
     public List<Vector3> dominatingSet = new List<Vector3>();
+    private Vector3 start_pos;
 
 	void Start () {
         terrain_manager = terrain_manager_game_object.GetComponent<TerrainManager>();
-        Vector3 start_pos = terrain_manager.myInfo.start_pos;
+        start_pos = terrain_manager.myInfo.start_pos;
         
         visibility_corners = GetCorners();
         visibility_corners.Add(start_pos);
@@ -44,11 +45,22 @@ public class VisibilityGraph : MonoBehaviour {
 
         nearest_neighbour_tsp(start_pos);
         
-        //draw_Path_between(dominatingSet[0], dominatingSet[1]);
-
+        GeneticTSP geneticTSP = new GeneticTSP(visibility_corners, dominatingSet, adjacency_matrix, start_pos, 3);
+        geneticTSP.Optimize(100);
+        Paths best = geneticTSP.GetBest();
+        DrawMultiAgentPaths(best);
     }
 
-
+    void DrawMultiAgentPaths(Paths paths) {
+        Color[] colors = new Color[] {Color.yellow, Color.green, Color.blue, Color.white, Color.black};
+        for (int path_idx = 0; path_idx < paths.Count(); path_idx++) {
+            List<int> path = paths.GetPath(path_idx);
+            Debug.DrawLine(start_pos, visibility_corners[path[0]], colors[path_idx], 100f);
+            for (int i = 0; i < path.Count - 1; i++) {
+                Debug.DrawLine(visibility_corners[path[i]], visibility_corners[path[i + 1]], colors[path_idx], 100f);
+            }
+        }
+    }
     
     public float[,] get_matrix()
     {
@@ -461,7 +473,7 @@ public class VisibilityGraph : MonoBehaviour {
         for (int i = 0; i < verbose_tsp_path.Count-1; i++)
         {
             //draw_Path_between(verbose_tsp_path[i], verbose_tsp_path[i + 1]);
-            Debug.DrawLine(verbose_tsp_path[i], verbose_tsp_path[i + 1], Color.red, 100f); //debugging: see the path
+            //Debug.DrawLine(verbose_tsp_path[i], verbose_tsp_path[i + 1], Color.red, 100f); //debugging: see the path
         }
         Debug.Log("path size " + verbose_tsp_path.Count);
 
