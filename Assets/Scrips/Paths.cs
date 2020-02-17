@@ -10,14 +10,14 @@ public class Paths
 {
     List<List<int>> paths = new List<List<int>>();
     public float fitness;
-
+    public float max_cost;
     public Paths() {}
 
     /**
      * Initialize npaths random paths
      */
-    public Paths(List<int> points, int npaths) {
-        InitRandom(points, npaths);
+    public Paths(List<int> points, int npaths, System.Random random) {
+        InitRandom(points, npaths, random);
     }
 
     public Paths(List<List<int>> paths) {
@@ -59,8 +59,7 @@ public class Paths
     /**
      * Creates the given number of random paths from the given set of points
      */
-    private void InitRandom(List<int> points, int npaths) {
-        System.Random random = new System.Random();
+    private void InitRandom(List<int> points, int npaths, System.Random random) {
         int added = 0;
 
         // Initialize paths with npaths empty arrays
@@ -87,16 +86,18 @@ public class Paths
     public void ComputeFitness(float[,] distances) {
         float[] costs = GetCosts(distances);
         this.fitness = 1.0f / costs.Max();
+        this.max_cost = costs.Max();
     }
 
     public float[] GetCosts(float[,] distances) {
         float[] costs = new float[paths.Count];
+
         for (int i = 0; i < paths.Count; i++) {
             List<int> path = paths[i];
             if (path.Count > 0) {
                 float length = distances[0, path[0]]; // Distance from start (alwas index 0) to first point of path
                 for (int j = 0; j < path.Count - 1 && path.Count > 1; j++) { // Compute length of path
-                    length += distances[j, j + 1];
+                    length += distances[path[j], path[j + 1]];
                 }
                 costs[i] = length;
             }
