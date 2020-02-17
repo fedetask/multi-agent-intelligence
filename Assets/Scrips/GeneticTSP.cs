@@ -9,8 +9,8 @@ public class GeneticTSP
     List<int> path_points; // Contains dominating points indexes w.r.t. the visibility graph
     int nagents;
     List<Paths> population;
-    int population_size = 10000;
-    float selection_size = 0.5f;
+    int population_size = 100000;
+    float selection_size = 0.3f;
     float start_mutation_prob = 0.1f;
     float crossover_size_min;
     float crossover_size_max;
@@ -27,13 +27,15 @@ public class GeneticTSP
         random = new System.Random();
         this.crossover_size_min = dominating_points.Count / (2 * nagents * 100);
         this.crossover_size_max = dominating_points.Count * 2 / (nagents * 100);
+
+        InitGenetic();
     }
 
     private void InitGenetic() {
-        population = new List<Paths>(population_size / 2);
+        population = new List<Paths>(population_size);
         // Initialize random paths
-        for(int i = 0; i < population_size / 2; i++) { 
-            population[i] = new Paths(path_points, nagents);
+        for(int i = 0; i < population_size; i++) { 
+            population.Add(new Paths(path_points, nagents));
         }
     }
 
@@ -66,8 +68,8 @@ public class GeneticTSP
         }
         population.Sort(new Comparison<Paths>((o1, o2) => (int)(o1.fitness - o2.fitness)));
         // Removing the selection_size proportion from the tail of the population
-        for (int i = population.Count-1; i > selection_size * population.Count; i--) {
-            population.RemoveAt(i);
+        for (int i = population.Count - 1; i >= (int) (selection_size * population_size); i--) {
+            population.RemoveAt(population.Count - 1);
         }
     }
 
