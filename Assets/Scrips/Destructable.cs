@@ -30,7 +30,7 @@ public class Destructable : MonoBehaviour
     {
         if(health < 0)
         {
-            Debug.Log(transform.name + ": I am dying!");
+            //Debug.Log(transform.name + ": I am dying!");
             Destroy(gameObject, 0.1f);
         }
     }

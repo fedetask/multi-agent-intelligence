@@ -124,7 +124,7 @@ public class GatlingGun : MonoBehaviour
                         go_target = g_obj;
                         canFire = true;
                         //Debug.DrawRay(g_obj.transform.position, -direction, Color.blue);
-                        Debug.Log("Viable target:" + g_obj);
+                        //Debug.Log("Viable target:" + g_obj);
 
                     }
                 }
