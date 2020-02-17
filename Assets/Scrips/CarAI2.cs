@@ -10,31 +10,22 @@ namespace UnityStandardAssets.Vehicles.Car
     public class CarAI2 : MonoBehaviour
     {
         private CarController m_Car; // the car controller we want to use
-
         public GameObject terrain_manager_game_object;
         TerrainManager terrain_manager;
-
-        public float crash_timer = 0f;
-        public float crash_timer_threshold = 4f;
-
-        public bool has_crashed = false;
-        public float crash_correction_timer = 4f;
-
-        public float current_speed;
-
-        public GameObject[] friends;
-        public GameObject[] enemies;
+        private float crash_timer = 0f;
+        private float crash_timer_threshold = 4f;
+        private bool has_crashed = false;
+        private float crash_correction_timer = 4f;
+        private float current_speed;
+        private GameObject[] friends;
+        private GameObject[] enemies;
         public GameObject visibility_game_object;
-        public VisibilityGraph visibility;
-
-        public List<Vector3> visibility_graph;
-        public List<Vector3> verbose_path; //verbose ALL of the nodes of the TSP path
-        public List<Vector3> path; //non verbose only containts the nodes within the TSP path that belongs to the dominating sent
-
-        public int[] seen_thus_far; //nodes we have seen thus far (indeces of nodes)
-
-        
-        public int next_index = 1; //start at 1, ignore the starting position of the our cars
+        private VisibilityGraph visibility;
+        private List<Vector3> visibility_graph;
+        private List<Vector3> verbose_path; //verbose ALL of the nodes of the TSP path
+        private List<Vector3> path; //non verbose only containts the nodes within the TSP path that belongs to the dominating sent
+        private int[] seen_thus_far; //nodes we have seen thus far (indeces of nodes)
+        private int next_index = 1; //start at 1, ignore the starting position of the our cars
 
         private void Start()
         {
@@ -87,7 +78,7 @@ namespace UnityStandardAssets.Vehicles.Car
             int[] signs = new int[] { -1, 0, 1 };
 
             bool free = true;
-            Debug.DrawLine(current_pos, verbose_path[next], Color.yellow, 100f);
+            //Debug.DrawLine(current_pos, verbose_path[next], Color.yellow, 100f);
             RaycastHit ray;
             foreach (int sign in signs)
             {
@@ -145,7 +136,7 @@ namespace UnityStandardAssets.Vehicles.Car
 
             Vector3 direction = (next_pos - transform.position).normalized; //vector showcasing desired orientation towards next goal
 
-            Debug.DrawLine(transform.position, next_pos, Color.white, 100f);
+            //Debug.DrawLine(transform.position, next_pos, Color.white, 100f);
             
             //bool is_to_the_right = Vector3.Dot(direction, transform.right) > 0f;
             //bool is_to_the_front = Vector3.Dot(direction, transform.forward) > 0f;
@@ -179,38 +170,6 @@ namespace UnityStandardAssets.Vehicles.Car
             }
             
             acceleration = Mathf.Sign(direction_of_acceleration); //1 if we go forward, -1 if we wanna reverse
-
-
-            /* Not needed anymore. I kept it just in case.
-            if (direction_of_acceleration>=0)
-            {
-                is_to_the_front = true;
-            }
-            else
-            { is_to_the_front = false; }
-
-            if (is_to_the_right && is_to_the_front)
-            {
-                steering = 1f;
-                acceleration = 1f;
-            }
-            else if (is_to_the_right && !is_to_the_front)
-            {
-                steering = -1f;
-                acceleration = -1f;
-            }
-            else if (!is_to_the_right && is_to_the_front)
-            {
-                steering = -1f;
-                acceleration = 1f;
-            }
-            else if (!is_to_the_right && !is_to_the_front)
-            {
-                steering = 1f;
-                acceleration = -1f;
-            }
-
-            */
            
             if(current_speed<1f) //If we are going really slow, we very likely crashed -> start counting!
             {
