@@ -9,13 +9,12 @@ public class GeneticTSP
     List<int> path_points; // Contains dominating points indexes w.r.t. the visibility graph
     int nagents;
     List<Paths> population;
-    int population_size = 1000;
-    float selection_size = 0.2f;
-    float start_mutation_prob = 0.1f;
-    float crossover_size_min;
-    float crossover_size_max;
+    int population_size = 500;
+    float selection_size = 0.3f;
+    float start_mutation_prob = 0.2f;
     float[,] min_distances;
     System.Random random;
+    float mutation_prob;
     public GeneticTSP(List<Vector3> visibility_points, List<Vector3> dominating_points, float[,] min_distances, Vector3 start_pos, int nagents) {
         this.dominating_points = dominating_points;
         this.path_points = new List<int>(dominating_points.Count);
@@ -24,16 +23,15 @@ public class GeneticTSP
         }
         this.nagents = nagents;
         this.min_distances = min_distances;
+        this.mutation_prob = start_mutation_prob;
         random = new System.Random();
-        this.crossover_size_min = dominating_points.Count / (2 * nagents * 100);
-        this.crossover_size_max = dominating_points.Count * 2 / (nagents * 100);
     }
 
     private void InitGenetic() {
         population = new List<Paths>(population_size);
         // Initialize random paths
         for(int i = 0; i < population_size; i++) { 
-            population.Add(new Paths(path_points, nagents));
+            population.Add(new Paths(path_points, nagents, random));
         }
     }
 
@@ -41,8 +39,12 @@ public class GeneticTSP
         InitGenetic();
         for (int i = 0 ; i < generations; i++) {
             ApplySelection();
+            Paths best = GetBest();
+            Debug.Log("Best cost "+best.max_cost);
             GenerateOffspring();
-            // Mutate
+            Mutate();
+            Migrate();
+            mutation_prob *= 0.8f;
         }
         return GetBest();
     }
@@ -64,130 +66,150 @@ public class GeneticTSP
         foreach (Paths path in population) {
             path.ComputeFitness(min_distances);
         }
-        population.Sort(new Comparison<Paths>((o1, o2) => (int)(o1.fitness - o2.fitness)));
-        // Removing the selection_size proportion from the tail of the population
-        for (int i = population.Count - 1; i >= (int) (selection_size * population_size); i--) {
-            population.RemoveAt(population.Count - 1);
-        }
+        population = population.OrderBy(i => i.fitness).ToList();
+
+        // Removing (1 - selection_size) percent of worst solutions
+       while (population.Count > (int) (selection_size * population_size)) {
+           population.RemoveAt(0);
+       }
     }
 
     private void GenerateOffspring() {
-        int offspring_size = (int) selection_size * population_size;
+        int offspring_size = (int) ((1 - selection_size) * population_size);
         float[] fitness_scores = FitnessScores(true);
         for (int i = 0; i < offspring_size; i++) {
             // Chose two parents with probability proportional to their fitness
-            int parent1 = RandomChoice(fitness_scores);
-            int parent2;
-            do {
-                parent2 = RandomChoice(fitness_scores);
-            } while (parent1 == parent2);
-            Paths child = Crossover(population[parent1], population[parent2]);
+            int parent_idx = RandomChoice(fitness_scores);
+            Paths child = Crossover(population[parent_idx]);
             population.Add(child);
         }
     }
 
     private float[] FitnessScores(bool normalize = false) {
         float[] fitness_scores = new float[population.Count];
+        float tot_fitness = 0;
         for (int i = 0; i < population.Count; i++) {
             fitness_scores[i] = population[i].fitness;
-            if (normalize) {
-                fitness_scores[i] /= population.Count;
+            tot_fitness += fitness_scores[i];
+        }
+        if (normalize) {
+            for (int i = 0; i < fitness_scores.Length; i++) {
+                fitness_scores[i] /= tot_fitness;
             }
         }
         return fitness_scores;
     }
 
-    private Paths Crossover(Paths parent1, Paths parent2) {
-        float crossover_size = RandomBetween(crossover_size_min, crossover_size_max);
-        int npoints = (int) (crossover_size * parent1.TotalLength());
-        List<int> section = Section(parent1, npoints);
-        Paths offspring = Merge(section, parent2);
-        return offspring;
-    }
+    private Paths Crossover(Paths parent) {
+        // Select randomly two subtours of parent
+        int subtour1_idx = random.Next(nagents);
+        int subtour2_idx;
+        do {
+            subtour2_idx = random.Next(nagents);
+        } while (subtour2_idx == subtour1_idx);
 
-    /**
-     * Return a random "slice" of a Paths object. 
-     */
-    private List<int> Section(Paths paths, int npoints) {
-        List<int> section = new List<int>();
-        int start_max = paths.TotalLength() - npoints + 1;
-        int start = random.Next(start_max);
-        int tot = 0;
-        int count = 0;
-        foreach (List<int> path in paths.GetPaths()) {
-            tot += path.Count;
-            if (tot < start) { continue; }
-            // TODO: join together paths of different agents? 
-            for (int point_idx = 0; point_idx < path.Count(); point_idx++) {
-                section.Add(path[point_idx]);
-                if (++count == npoints) { return section; }
+        // Get a copy of the two selected subtours from the parent
+        List<int> subtour1 = new List<int>(parent.GetPath(subtour1_idx));
+        List<int> subtour2 = new List<int>(parent.GetPath(subtour2_idx));
+
+        // Select a random split point. All items after the
+        // split point (included) will be swapped  
+        int split1 = random.Next(subtour1.Count);
+        int split2 = random.Next(subtour2.Count);
+
+        List<int> slice1 = new List<int>();
+        List<int> slice2 = new List<int>();
+
+        // Remove everything from the split points onwards and
+        // add to the two slices 
+        while (subtour1.Count > split1) {
+            slice1.Insert(0, subtour1.Last());
+            subtour1.RemoveAt(subtour1.Count - 1);
+        }
+        while (subtour2.Count > split2) {
+            slice2.Insert(0, subtour2.Last());
+            subtour2.RemoveAt(subtour2.Count - 1);
+        }
+        
+        // Swapping
+        subtour1.AddRange(slice2);
+        subtour2.AddRange(slice1);
+
+        List<List<int>> paths = new List<List<int>>();
+        paths.Add(subtour1);
+        paths.Add(subtour2);
+        for (int i = 0; i < parent.Count(); i++) {
+            if (i != subtour1_idx && i != subtour2_idx) {
+                paths.Add(new List<int>(parent.GetPath(i)));
             }
         }
-        return section;
+        
+        Paths child = new Paths(paths);
+        return child;
     }
 
-    /**
-     * Returns a Paths object resulting from merging the given section (from parent 1)
-     * with parent 2.9
-     */
-    private Paths Merge(List<int> section, Paths parent) {
-        List<List<int>> path_sections = new List<List<int>>();
-        path_sections.Add(section);
-        // Splitting paths of parent in points where they intersect section,
-        foreach (List<int> path in parent.GetPaths()) {
-            // Check if path intersects with the given section and
-            // in that case break it into multiple sections
-            List<int> sec = new List<int>();
-            for (int i = 0; i < path.Count; i++) {
-                if (! section.Contains(path[i])) {
-                    sec.Add(path[i]);
-                } else if (sec.Count > 0){
-                    // Jump point, add section to array
-                    path_sections.Add(sec);
-                    sec = new List<int>();
-                }
+    private void Mutate() {
+        foreach (Paths paths in population) {
+            bool mutate = random.NextDouble() <= mutation_prob;
+            if (mutate) {
+                DoRandomMutation(paths);
             }
-            // Add last section
-            if (sec.Count > 0) { path_sections.Add(sec); }
         }
-
-        Paths result_paths = new Paths(nagents);
-        float[] costs = new float[result_paths.Count()];
-
-        while (path_sections.Count > 0) {
-            // Iterate trough all the remaining sections and assign
-            // them greedily to the paths by minimizing cost
-            float min_cost = float.MaxValue;
-            int min_cost_path = -1;
-            int min_cost_sec = -1;
-            for (int sec_idx = 0; sec_idx < path_sections.Count; sec_idx++) {
-                List<int> sec = path_sections[sec_idx];
-                float sec_cost = Cost(sec);
-                // Find assignment of sec to path that has smallest cost
-                for (int i = 0; i < result_paths.GetPaths().Count; i++) {
-                    List<int> path = result_paths.GetPath(i);
-                    // Try assign sec to this path
-                    float tot_cost;
-                    if (path.Count > 0) { 
-                        tot_cost = costs[i] + min_distances[path.Count - 1, sec[0]] + sec_cost;
-                    } else {
-                        tot_cost = sec_cost;
-                    }
-                    if (tot_cost < min_cost) {
-                        min_cost = tot_cost;
-                        min_cost_path = i;
-                        min_cost_sec = sec_idx;
-                    }
-                }
-            }
-
-            result_paths.GetPath(min_cost_path).AddRange(path_sections[min_cost_sec]);
-            costs[min_cost_path] = min_cost;
-            path_sections.RemoveAt(min_cost_sec);
-        }
-        return result_paths;
     }
 
+    private void DoRandomMutation(Paths paths) {
+        int subtour1_idx = random.Next(paths.Count());
+        int subtour2_idx;
+        do {
+            subtour2_idx = random.Next(paths.Count());
+        } while (subtour2_idx == subtour1_idx);
+
+        List<int> path1 = paths.GetPath(subtour1_idx);
+        List<int> path2 = paths.GetPath(subtour2_idx);
+
+        if (path1.Count == 0 || path2.Count == 0) { return; }
+
+        int node1_idx = random.Next(path1.Count);
+        int node2_idx = random.Next(path2.Count);
+
+        int node1 = path1[node1_idx];
+        int node2 = path2[node2_idx];
+
+        path1.RemoveAt(node1_idx);
+        path2.RemoveAt(node2_idx);
+        path1.Insert(node1_idx, node2);
+        path2.Insert(node2_idx, node1);
+    }
+
+    private void Migrate() {
+        foreach (Paths paths in population) {
+            bool mutate = random.NextDouble() <= mutation_prob;
+            if (mutate) {
+                DoRandomMigration(paths);
+            }
+        }
+    }
+
+
+    private void DoRandomMigration(Paths paths) {
+        int subtour1_idx = random.Next(paths.Count());
+        int subtour2_idx;
+        do {
+            subtour2_idx = random.Next(paths.Count());
+        } while (subtour2_idx == subtour1_idx);
+
+        List<int> path1 = paths.GetPath(subtour1_idx);
+        List<int> path2 = paths.GetPath(subtour2_idx);
+
+        if (path1.Count == 0 || path2.Count == 0) { return; }
+
+        int node1_idx = random.Next(path1.Count);
+        int node2_idx = random.Next(path2.Count);
+        
+        int node1 = path1[node1_idx];
+        path1.RemoveAt(node1_idx);
+        path2.Insert(node2_idx, node1);
+    }
     private float Cost(List<int> path) {
         if (path.Count < 2) { return 0; }
         float cost = 0;
