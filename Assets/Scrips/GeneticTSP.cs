@@ -9,9 +9,10 @@ public class GeneticTSP
     List<int> path_points; // Contains dominating points indexes w.r.t. the visibility graph
     int nagents;
     List<Paths> population;
-    int population_size = 500;
+    int population_size = 200;
     float selection_size = 0.3f;
-    float start_mutation_prob = 0.2f;
+    float start_mutation_prob = 0.3f;
+    float halflife_mutation_prob = 0.01f; // Desired probability of mutation at half of the iterations
     float[,] min_distances;
     System.Random random;
     float mutation_prob;
@@ -36,16 +37,17 @@ public class GeneticTSP
     }
 
     public Paths Optimize(int generations = 50) {
+        float prob_reduction_coeff = Mathf.Pow((halflife_mutation_prob / start_mutation_prob), (2 / (float) generations));
         InitGenetic();
         for (int i = 0 ; i < generations; i++) {
+            ComputeFitnesses();
             ApplySelection();
-            Paths best = GetBest();
-            Debug.Log("Best cost "+best.max_cost);
             GenerateOffspring();
             Mutate();
             Migrate();
-            mutation_prob *= 0.8f;
+            mutation_prob *= prob_reduction_coeff;
         }
+        ComputeFitnesses();
         return GetBest();
     }
 
@@ -63,23 +65,27 @@ public class GeneticTSP
     }
 
     private void ApplySelection() {
-        foreach (Paths path in population) {
-            path.ComputeFitness(min_distances);
-        }
         population = population.OrderBy(i => i.fitness).ToList();
-
         // Removing (1 - selection_size) percent of worst solutions
        while (population.Count > (int) (selection_size * population_size)) {
            population.RemoveAt(0);
        }
     }
 
+    private void ComputeFitnesses() {
+        foreach (Paths path in population) {
+            path.ComputeFitness(min_distances);
+        }
+    }
+
     private void GenerateOffspring() {
-        int offspring_size = (int) ((1 - selection_size) * population_size);
         float[] fitness_scores = FitnessScores(true);
-        for (int i = 0; i < offspring_size; i++) {
+        while(population.Count < population_size) {
             // Chose two parents with probability proportional to their fitness
             int parent_idx = RandomChoice(fitness_scores);
+            if (parent_idx < 0 || parent_idx > population.Count -1) {
+                Debug.Log("ERROR  "+parent_idx);
+            }
             Paths child = Crossover(population[parent_idx]);
             population.Add(child);
         }
@@ -224,14 +230,14 @@ public class GeneticTSP
      */
     private int RandomChoice(float[] distribution) {
         double p = random.NextDouble();
-        double tot = 0;
+        float tot = 0;
         for (int i = 0; i < distribution.Length; i++) {
             if (p >= tot && p < tot + distribution[i]) {
                 return i;
             }
             tot += distribution[i];
         }
-        return -1;
+        return distribution.Length - 1;
     }
 
     private float RandomBetween(float min, float max) {

@@ -55,7 +55,7 @@ namespace UnityStandardAssets.Vehicles.Car
             geneticTSP = new GeneticTSP(visibility_corners, dominatingSet, min_distances, start_pos, 3);
             System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
             stopwatch.Start();
-            geneticTSP.Optimize(1000);
+            geneticTSP.Optimize(4000);
             stopwatch.Stop();
             Debug.Log("Genetic computation: " + stopwatch.Elapsed.Seconds + "s " + stopwatch.Elapsed.Milliseconds);
             Paths best = geneticTSP.GetBest();
@@ -79,13 +79,6 @@ namespace UnityStandardAssets.Vehicles.Car
         }
 
 
-        public List<int> get_path()
-        {
-            List<int> result = geneticTSP.GetBest().GetPath(counter);
-            Debug.Log("counter " + counter);
-            counter += 1;
-            return result;
-        }
 
 
         void DrawMultiAgentPaths(Paths paths)
