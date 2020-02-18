@@ -70,8 +70,8 @@ namespace UnityStandardAssets.Vehicles.Car
 
         private List<Vector3> compute_paths(Paths solutions)
         {
-            
-            seen_thus_far = new int[visibility_graph.Count];
+
+            seen_thus_far = visibility.seen_thus_far;
             List<int> path_indeces = solutions.GetPath(index_of_current_player);//visibility.geneticTSP.GetBest().GetPath(index_of_current_player);
             Debug.Log("Path length " + path_indeces.Count);
             path.Add(visibility.start_pos);
@@ -98,7 +98,7 @@ namespace UnityStandardAssets.Vehicles.Car
             Vector3 direction = verbose_path[next] - current_pos;
             Vector3 normal = new Vector3(-direction.z, direction.y, direction.x).normalized;
             
-            float step = (visibility.margin - 0.1f) / 2;
+            float step = (visibility.get_margin() - 0.1f) / 2;
             int[] signs = new int[] { -1, 0, 1 };
 
             bool free = true;
@@ -122,7 +122,12 @@ namespace UnityStandardAssets.Vehicles.Car
         {
             bool result = true;
 
+            if (!visibility.dominatingSet.Contains(verbose_path[current]))
+            { return true; }
+
             int index_of_current = visibility_graph.IndexOf(verbose_path[current]);
+
+
 
             float[,] adj_matrix = visibility.get_matrix();
 
@@ -203,6 +208,7 @@ namespace UnityStandardAssets.Vehicles.Car
                 {
                     crash_correction_timer = 1f; //reset the correction timer
                     has_crashed = false; //we are no longer in the crashing phase
+                    crash_timer = 0f;
                 }
             }
             
@@ -215,7 +221,6 @@ namespace UnityStandardAssets.Vehicles.Car
                 if(crash_timer>crash_timer_threshold) //if we are going slow for a long enough time
                 {
                     has_crashed = true; //we crashed
-
                 }
 
             }

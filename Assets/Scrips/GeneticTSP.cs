@@ -9,7 +9,7 @@ public class GeneticTSP
     List<int> path_points; // Contains dominating points indexes w.r.t. the visibility graph
     int nagents;
     List<Paths> population;
-    int population_size = 200;
+    int population_size = 50;
     float selection_size = 0.3f;
     float start_mutation_prob = 0.3f;
     float halflife_mutation_prob = 0.01f; // Desired probability of mutation at half of the iterations

@@ -10777,11 +10777,12 @@ MonoBehaviour:
   terrain_manager_game_object: {fileID: 342108197}
   crash_timer: 0
   crash_timer_threshold: 1
-  crash_correction_timer: 1
+  crash_correction_timer: 2
   current_speed: 0
   visibility_game_object: {fileID: 733356562}
   verbose_path: []
   path: []
+  path_initialized: 0
   index_of_current_player: 0
 --- !u!114 &172169029
 MonoBehaviour:
@@ -23237,7 +23238,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30f8baf6148331c4b81440f9341e4310, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  margin: 4
   terrain_manager_game_object: {fileID: 342108197}
   visibility_corners: []
   tsp_path: []
@@ -34567,11 +34567,12 @@ MonoBehaviour:
   terrain_manager_game_object: {fileID: 342108197}
   crash_timer: 0
   crash_timer_threshold: 1
-  crash_correction_timer: 1
+  crash_correction_timer: 2
   current_speed: 0
   visibility_game_object: {fileID: 733356562}
   verbose_path: []
   path: []
+  path_initialized: 0
   index_of_current_player: 0
 --- !u!114 &1193214292
 MonoBehaviour:
@@ -77811,11 +77812,12 @@ MonoBehaviour:
   terrain_manager_game_object: {fileID: 342108197}
   crash_timer: 0
   crash_timer_threshold: 1
-  crash_correction_timer: 1
+  crash_correction_timer: 2
   current_speed: 0
   visibility_game_object: {fileID: 733356562}
   verbose_path: []
   path: []
+  path_initialized: 0
   index_of_current_player: 0
 --- !u!114 &3165470286205641659
 MonoBehaviour:

@@ -8,7 +8,7 @@ namespace UnityStandardAssets.Vehicles.Car
     public class VisibilityGraph : MonoBehaviour
     {
 
-        public float margin = 4f;
+        private float margin = 4f;
         public GameObject terrain_manager_game_object;
         TerrainManager terrain_manager;
 
@@ -26,13 +26,19 @@ namespace UnityStandardAssets.Vehicles.Car
         public List<Vector3> verbose_tsp_path;
 
 
+        public int[] seen_thus_far { get; private set; }
+
         public List<Vector3> dominatingSet = new List<Vector3>();
         public Vector3 start_pos;
 
         public GeneticTSP geneticTSP;
 
+
+
+
         void Start()
         {
+            
             terrain_manager = terrain_manager_game_object.GetComponent<TerrainManager>();
             start_pos = terrain_manager.myInfo.start_pos + new Vector3(-margin, 0f, -margin);
             visibility_corners = new List<Vector3>();
@@ -41,6 +47,7 @@ namespace UnityStandardAssets.Vehicles.Car
             CorrectionCorners(visibility_corners);
             Debug.Log("starting visibility");
             adjacency_matrix = GetAdjacencyMatrix(visibility_corners);
+            seen_thus_far = new int[visibility_corners.Count];
             dominatingSet = GreedyDominatingSet(visibility_corners, adjacency_matrix);
 
             foreach (Vector3 v in dominatingSet)
@@ -79,7 +86,8 @@ namespace UnityStandardAssets.Vehicles.Car
         }
 
 
-
+        public float get_margin()
+        { return margin; }
 
         void DrawMultiAgentPaths(Paths paths)
         {
