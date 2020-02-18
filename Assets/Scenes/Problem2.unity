@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.4465785, g: 0.49641252, b: 0.574817, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -10769,7 +10769,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 172169026}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cd8f88dbef86049759c7f8b36661fe22, type: 3}
   m_Name: 
@@ -10777,18 +10777,12 @@ MonoBehaviour:
   terrain_manager_game_object: {fileID: 342108197}
   crash_timer: 0
   crash_timer_threshold: 1
-  has_crashed: 0
-  crash_correction_timer: 5
+  crash_correction_timer: 1
   current_speed: 0
-  friends: []
-  enemies: []
-  visibility_game_object: {fileID: 0}
-  visibility: {fileID: 0}
-  visibility_graph: []
+  visibility_game_object: {fileID: 733356562}
   verbose_path: []
   path: []
-  seen_thus_far: 
-  next_index: 1
+  index_of_current_player: 0
 --- !u!114 &172169029
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10857,7 +10851,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 172169026}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3ea65b38d485c374caa584a03f1de571, type: 3}
   m_Name: 
@@ -23224,7 +23218,6 @@ GameObject:
   m_Component:
   - component: {fileID: 733356564}
   - component: {fileID: 733356563}
-  - component: {fileID: 733356565}
   m_Layer: 0
   m_Name: VisibilityGraph
   m_TagString: Untagged
@@ -23241,7 +23234,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 733356562}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 49652744362d5ad849991d5d2eb79e98, type: 3}
+  m_Script: {fileID: 11500000, guid: 30f8baf6148331c4b81440f9341e4310, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   margin: 4
@@ -23250,6 +23243,7 @@ MonoBehaviour:
   tsp_path: []
   verbose_tsp_path: []
   dominatingSet: []
+  start_pos: {x: 0, y: 0, z: 0}
 --- !u!4 &733356564
 Transform:
   m_ObjectHideFlags: 0
@@ -23264,18 +23258,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &733356565
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 733356562}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1ab736c0581ab5848a3f2d3eb9cc06b4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &753871094
 GameObject:
   m_ObjectHideFlags: 0
@@ -34577,7 +34559,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1193214289}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cd8f88dbef86049759c7f8b36661fe22, type: 3}
   m_Name: 
@@ -34585,18 +34567,12 @@ MonoBehaviour:
   terrain_manager_game_object: {fileID: 342108197}
   crash_timer: 0
   crash_timer_threshold: 1
-  has_crashed: 0
-  crash_correction_timer: 5
+  crash_correction_timer: 1
   current_speed: 0
-  friends: []
-  enemies: []
-  visibility_game_object: {fileID: 0}
-  visibility: {fileID: 0}
-  visibility_graph: []
+  visibility_game_object: {fileID: 733356562}
   verbose_path: []
   path: []
-  seen_thus_far: 
-  next_index: 1
+  index_of_current_player: 0
 --- !u!114 &1193214292
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -34665,7 +34641,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1193214289}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3ea65b38d485c374caa584a03f1de571, type: 3}
   m_Name: 
@@ -77834,19 +77810,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   terrain_manager_game_object: {fileID: 342108197}
   crash_timer: 0
-  crash_timer_threshold: 2
-  has_crashed: 0
-  crash_correction_timer: 2
+  crash_timer_threshold: 1
+  crash_correction_timer: 1
   current_speed: 0
-  friends: []
-  enemies: []
   visibility_game_object: {fileID: 733356562}
-  visibility: {fileID: 0}
-  visibility_graph: []
   verbose_path: []
   path: []
-  seen_thus_far: 
-  next_index: 1
+  index_of_current_player: 0
 --- !u!114 &3165470286205641659
 MonoBehaviour:
   m_ObjectHideFlags: 0

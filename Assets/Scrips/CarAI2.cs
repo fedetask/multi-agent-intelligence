@@ -12,39 +12,40 @@ namespace UnityStandardAssets.Vehicles.Car
         private CarController m_Car; // the car controller we want to use
         public GameObject terrain_manager_game_object;
         TerrainManager terrain_manager;
-        private float crash_timer = 0f;
-        private float crash_timer_threshold = 4f;
+        public float crash_timer = 0f;
+        public float crash_timer_threshold = 2f;
         private bool has_crashed = false;
-        private float crash_correction_timer = 4f;
-        private float current_speed;
+        public float crash_correction_timer = 2f;
+        public float current_speed;
         private GameObject[] friends;
         private GameObject[] enemies;
         public GameObject visibility_game_object;
         private VisibilityGraph visibility;
         private List<Vector3> visibility_graph;
-        private List<Vector3> verbose_path; //verbose ALL of the nodes of the TSP path
-        private List<Vector3> path; //non verbose only containts the nodes within the TSP path that belongs to the dominating sent
-        private int[] seen_thus_far; //nodes we have seen thus far (indeces of nodes)
-        private int next_index = 1; //start at 1, ignore the starting position of the our cars
+        public List<Vector3> verbose_path = new List<Vector3>(); //verbose ALL of the nodes of the TSP path
+        public List<Vector3> path = new List<Vector3>(); //non verbose only containts the nodes within the TSP path that belongs to the dominating sent
 
+        public bool path_initialized=false;
+
+        private int[] seen_thus_far; //nodes we have seen thus far (indeces of nodes)
+        private int next_index = 0; //start at 1, ignore the starting position of the our cars
+        public int index_of_current_player;
+        
+       
         private void Start()
         {
             // get the car controller
             m_Car = GetComponent<CarController>();
-            visibility = visibility_game_object.GetComponent<VisibilityGraph>();
-            visibility_graph = visibility.visibility_corners;
-            seen_thus_far = new int[visibility_graph.Count];
-            verbose_path = visibility.verbose_tsp_path;
-            path = visibility.tsp_path;
+            
+            
             terrain_manager = terrain_manager_game_object.GetComponent<TerrainManager>();
 
-            current_speed = m_Car.CurrentSpeed;
+            //current_speed = m_Car.CurrentSpeed;
             // note that both arrays will have holes when objects are destroyed
             // but for initial planning they should work
             friends = GameObject.FindGameObjectsWithTag("Player");
             // Note that you are not allowed to check the positions of the turrets in this problem
-
-
+            
 
             // Plan your path here
             // ...
@@ -64,6 +65,29 @@ namespace UnityStandardAssets.Vehicles.Car
                     seen_thus_far[i] = 1;
                 }
             }
+        }
+
+
+        private List<Vector3> compute_paths(Paths solutions)
+        {
+            
+            seen_thus_far = new int[visibility_graph.Count];
+            List<int> path_indeces = solutions.GetPath(index_of_current_player);//visibility.geneticTSP.GetBest().GetPath(index_of_current_player);
+            Debug.Log("Path length " + path_indeces.Count);
+            path.Add(visibility.start_pos);
+            for (int i = 0; i < path_indeces.Count; i++)
+            {
+                path.Add(visibility_graph[path_indeces[i]]);
+            }
+            verbose_path = visibility.succint_to_verbose(path);
+
+            for (int i = 0; i < verbose_path.Count-1; i++)
+            {
+                Debug.DrawLine(verbose_path[i], verbose_path[i + 1], Color.red, 100f);
+            }
+            path_initialized = true;
+            return verbose_path;
+
         }
 
         //Check whether you could steer towards the next point (if the car can drive in a straight line)
@@ -117,7 +141,13 @@ namespace UnityStandardAssets.Vehicles.Car
 
         private void FixedUpdate()
         {
-            verbose_path = visibility.verbose_tsp_path;
+            
+            if (!path_initialized)
+            {
+                visibility = visibility_game_object.GetComponent<VisibilityGraph>();
+                visibility_graph = visibility.visibility_corners;
+                compute_paths(visibility.geneticTSP.GetBest());
+            }
 
             //update what you have seen thus far
             inspect();
@@ -128,15 +158,22 @@ namespace UnityStandardAssets.Vehicles.Car
             {
                 next_index += 1;
             }
-
+           
             
             Vector3 next_pos = verbose_path[next_index];
+            
+            if(Vector3.Distance(next_pos,transform.position)<5f)
+            {
+                next_index += 1;
+                next_pos = verbose_path[next_index];
+            }
+            
 
             Vector3 current_direction = transform.forward.normalized; //vector facing forward from the car
 
             Vector3 direction = (next_pos - transform.position).normalized; //vector showcasing desired orientation towards next goal
 
-            //Debug.DrawLine(transform.position, next_pos, Color.white, 100f);
+            Debug.DrawLine(transform.position, next_pos, Color.white, 0.1f);
             
             //bool is_to_the_right = Vector3.Dot(direction, transform.right) > 0f;
             //bool is_to_the_front = Vector3.Dot(direction, transform.forward) > 0f;
@@ -164,7 +201,7 @@ namespace UnityStandardAssets.Vehicles.Car
 
                 if (crash_correction_timer <= 0) //after we corrected for enough time
                 {
-                    crash_correction_timer = 5f; //reset the correction timer
+                    crash_correction_timer = 1f; //reset the correction timer
                     has_crashed = false; //we are no longer in the crashing phase
                 }
             }
@@ -180,6 +217,7 @@ namespace UnityStandardAssets.Vehicles.Car
                     has_crashed = true; //we crashed
 
                 }
+
             }
             else
             {
