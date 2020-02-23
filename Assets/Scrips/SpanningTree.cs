@@ -46,7 +46,7 @@ public class SpanningTree : MonoBehaviour
             roots[i] = new int[2];
             roots[i][0] = myInfo.get_i_index(position.x);
             roots[i][1] = myInfo.get_j_index(position.z);
-            spanning_trees[array_to_string(roots[i])] = new List<int[]>();
+            spanning_trees[array_to_string(roots[i], i)] = new List<int[]>();
             traversability_matrix[roots[i][0], roots[i][1]] = 1f;
             //keys[i].Add(roots[i]);
             i++;
@@ -75,9 +75,9 @@ public class SpanningTree : MonoBehaviour
     }
 
 
-    string array_to_string(int[] array)
+    string array_to_string(int[] array, int agent_idx)
     {
-        return array[0] + "," + array[1];
+        return array[0] + "," + array[1]+":"+agent_idx;
     }
 
     void generate_Spanning_Trees()
@@ -94,7 +94,9 @@ public class SpanningTree : MonoBehaviour
                 }
                 else
                 {
-                    spanning_trees[array_to_string(new int[] { i, j })] = new List<int[]>();
+                    for (int a = 0; a < number_of_agents; a++) {
+                        spanning_trees[array_to_string(new int[] { i, j }, a)] = new List<int[]>();
+                    }
                 }
             }
         }
@@ -134,7 +136,7 @@ public class SpanningTree : MonoBehaviour
         
         if(neighbors.Count>0) {
             int[] best_neighbor = find_best_neighbor(neighbors,last_node,agent_idx);
-            spanning_trees[array_to_string(last_node[agent_idx])].Add(best_neighbor);
+            spanning_trees[array_to_string(last_node[agent_idx], agent_idx)].Add(best_neighbor);
             last_node[agent_idx] = best_neighbor;
             keys[agent_idx].Add(best_neighbor);
             traversability_matrix[best_neighbor[0], best_neighbor[1]] = 1f;
@@ -148,8 +150,8 @@ public class SpanningTree : MonoBehaviour
     int do_hilling(int agent_idx) {
         int[] node_hill = roots[agent_idx];
         int filled_blocks = 0;
-        while(spanning_trees[array_to_string(node_hill)].Count>0) {
-            int[] next_node = spanning_trees[array_to_string(node_hill)][0];
+        while(spanning_trees[array_to_string(node_hill, agent_idx)].Count>0) {
+            int[] next_node = spanning_trees[array_to_string(node_hill, agent_idx)][0];
             bool horizontal = (node_hill[0] == next_node[0]);
             int[] check_coord = horizontal ? new int[] {1, 0} : new int[] {0, 1};
             int[] signs = new int[] {-1, 1};
@@ -158,10 +160,10 @@ public class SpanningTree : MonoBehaviour
                 int[] b = new int[] { next_node[0] + sign * check_coord[0], next_node[1] + sign * check_coord[1] };
                 bool both_free = traversability_matrix[a[0], a[1]] == 0 && traversability_matrix[b[0], b[1]] == 0;
                 if (both_free) {
-                    bool removed = spanning_trees[array_to_string(node_hill)].Remove(next_node);
-                    spanning_trees[array_to_string(node_hill)].Add(a);
-                    spanning_trees[array_to_string(a)].Add(b);
-                    spanning_trees[array_to_string(b)].Add(next_node);
+                    bool removed = spanning_trees[array_to_string(node_hill, agent_idx)].Remove(next_node);
+                    spanning_trees[array_to_string(node_hill,agent_idx)].Add(a);
+                    spanning_trees[array_to_string(a, agent_idx)].Add(b);
+                    spanning_trees[array_to_string(b, agent_idx)].Add(next_node);
                     filled_blocks += 2;
                     filled_with_hilling[agent_idx] += 2;
                     traversability_matrix[a[0], a[1]] = 1f;
@@ -184,7 +186,7 @@ public class SpanningTree : MonoBehaviour
                 int r_index = UnityEngine.Random.Range(0, r_neighbors.Count);
                 int[] new_node = r_neighbors[r_index];
                 keys[agent_idx].Add(new_node);
-                spanning_trees[array_to_string(node)].Add(new_node);
+                spanning_trees[array_to_string(node, agent_idx)].Add(new_node);
                 filled_blocks += 1;
                 traversability_matrix[new_node[0],new_node[1]] = 1f;
                 break;
@@ -249,7 +251,7 @@ public class SpanningTree : MonoBehaviour
         for (int agent = 0; agent < 3; agent++) {
             List<int[]> points = keys[agent];
             foreach(int[] point in points) {
-                List<int[]> children = spanning_trees[array_to_string(point)];
+                List<int[]> children = spanning_trees[array_to_string(point, agent)];
                 foreach (int[] child in children) {
                     Vector3 from = new Vector3(myInfo.get_x_pos(point[0]), 0, myInfo.get_z_pos(point[1]));
                     Vector3 to = new Vector3(myInfo.get_x_pos(child[0]), 0, myInfo.get_z_pos(child[1]));
@@ -265,7 +267,7 @@ public class SpanningTree : MonoBehaviour
         for (int i = 0; i < number_of_agents; i++) {
             List<int[]> points = keys[i];
             foreach (int[] point in points) {
-                if (occupied.ContainsKey(array_to_string(point))) {
+                if (occupied.ContainsKey(array_to_string(point, i))) {
                     Debug.LogError("ERROR: point "+point[0]+","+point[1]+" belongs to more than one path");
                     return false;
                 }
