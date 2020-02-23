@@ -1,16 +1,20 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.SceneManagement;
+using System;
 namespace UnityStandardAssets.Vehicles.Car
 {
-    [RequireComponent(typeof(CarAI2))]
+    //[RequireComponent(typeof(CarAI2))]
     public class VisibilityGraph : MonoBehaviour
     {
 
         private float margin = 4f;
         public GameObject terrain_manager_game_object;
         TerrainManager terrain_manager;
+
+        public GameObject game_manager_object;
+        GameManager gm;
 
         // Floyd - Warshal variables
         public Vector3[,] next_node;
@@ -38,17 +42,38 @@ namespace UnityStandardAssets.Vehicles.Car
 
         void Start()
         {
-            
+            string scene_name = SceneManager.GetActiveScene().name;
+
+            int scene_number = Int32.Parse(scene_name.Substring(scene_name.Length - 1));
+
+            gm = game_manager_object.GetComponent<GameManager>();
+
+            Debug.Log("scene number " + scene_number);
             terrain_manager = terrain_manager_game_object.GetComponent<TerrainManager>();
             start_pos = terrain_manager.myInfo.start_pos + new Vector3(-margin, 0f, -margin);
             visibility_corners = new List<Vector3>();
             visibility_corners.Add(start_pos);
             visibility_corners.AddRange(GetCorners());
-            CorrectionCorners(visibility_corners);
+
+            if(scene_number==2)
+            {
+                CorrectionCorners(visibility_corners);
+            }
+            else
+            {
+                dominatingSet = get_Turret_Locations(gm);
+                visibility_corners.AddRange(dominatingSet);
+            }
+
+            
             Debug.Log("starting visibility");
             adjacency_matrix = GetAdjacencyMatrix(visibility_corners);
             seen_thus_far = new int[visibility_corners.Count];
-            dominatingSet = GreedyDominatingSet(visibility_corners, adjacency_matrix);
+            if(scene_number==2)
+            {
+                dominatingSet = GreedyDominatingSet(visibility_corners, adjacency_matrix);
+            }
+           
 
             foreach (Vector3 v in dominatingSet)
             {
@@ -66,10 +91,7 @@ namespace UnityStandardAssets.Vehicles.Car
             stopwatch.Stop();
             Debug.Log("Genetic computation: " + stopwatch.Elapsed.Seconds + "s " + stopwatch.Elapsed.Milliseconds);
             Paths best = geneticTSP.GetBest();
-            Debug.Log("Best count " + best.Count());
-            Debug.Log("     - path 1 " + best.GetPath(0).Count);
-            Debug.Log("     - path 2 " + best.GetPath(1).Count);
-            Debug.Log("     - path 3 " + best.GetPath(2).Count);
+            Debug.Log("Best solution cost : " + best.max_cost);
             DrawMultiAgentPaths(best);
 
             GameObject[] friends = GameObject.FindGameObjectsWithTag("Player");
@@ -77,11 +99,24 @@ namespace UnityStandardAssets.Vehicles.Car
             Debug.Log("Friend size " + friends.Length);
             foreach (GameObject obj in friends)
             {
-                CarAI2 script = obj.GetComponent<CarAI2>();
-                Debug.Log("Current object " + obj.name);
-                script.index_of_current_player = counter;
+                if(scene_number==2)
+                {
+                    CarAI2 script = obj.GetComponent<CarAI2>();
+                    Debug.Log("Current object " + obj.name);
+                    script.index_of_current_player = counter;
+
+                    counter += 1;
+                }
+                else
+                {
+                    CarAI3 script = obj.GetComponent<CarAI3>();
+                    Debug.Log("Current object " + obj.name);
+                    script.index_of_current_player = counter;
+
+                    counter += 1;
+                }
                 
-                counter += 1;
+                
             }
         }
 
@@ -159,6 +194,36 @@ namespace UnityStandardAssets.Vehicles.Car
             return valid_corners;
         }
 
+        private List<Vector3> get_Turret_Locations(GameManager gm)
+        {
+            List<GameObject> turret_list = gm.turret_list;
+
+            List<Vector3> path = new List<Vector3>();
+
+            foreach(GameObject turret in turret_list)
+            {
+                path.Add(push_from_corner(turret.transform.position));
+            }
+            Debug.Log("path size " + path.Count);
+            return path;
+        }
+
+
+        private Vector3 push_from_corner(Vector3 initial_position)
+        {
+            Collider[] hitColliders = Physics.OverlapSphere(initial_position, 2*margin);
+            if (hitColliders.Length>0)
+            {
+                Debug.Log("Turret Too close!");
+                Collider nearby_wall = hitColliders[0]; //it can only be close enought to one wall
+                Vector3 correction_direction =initial_position - nearby_wall.transform.position;
+                correction_direction = correction_direction.normalized;
+                return initial_position + margin * correction_direction;
+            }
+            else
+            { return initial_position; }
+        }
+         
         public List<Vector3> GetPathPoints(Vector3 source, Vector3 destination, List<Vector3> visibility_corners, float[,] adjacency_matrix)
         {
             // float time = Time.time;
