@@ -60,7 +60,7 @@ public class SpanningTree : MonoBehaviour
 
         generate_Spanning_Trees();
         Color[] colors = new Color[] { Color.white, Color.yellow, Color.blue };
-        
+        /*
         for (i=0; i<3;i++)
         {
             foreach(int[] node in keys[i])
@@ -74,6 +74,20 @@ public class SpanningTree : MonoBehaviour
                 }
             }
         }
+        */
+
+        List<List<Vector3>> paths = new List<List<Vector3>>();
+        for(i =0; i<3; i++)
+        {
+            paths.Add(dfs(roots[i]));
+            Debug.Log("Path size " + i + " is " + paths[i].Count);
+            for(int j=0; j<paths[i].Count; j++)
+            {
+                Debug.DrawLine(paths[i][j], paths[i][j], Color.yellow, 100f);
+            }
+        }
+
+        
         
         
 
@@ -143,7 +157,7 @@ public class SpanningTree : MonoBehaviour
                     keys[i].Add(best_neighbor);
                     Vector3 parent_position = new Vector3(terrain_manager.myInfo.get_x_pos(current_position[0]), 0f, terrain_manager.myInfo.get_z_pos(current_position[1]));
                     Vector3 child_position = new Vector3(terrain_manager.myInfo.get_x_pos(best_neighbor[0]), 0f, terrain_manager.myInfo.get_z_pos(best_neighbor[1]));
-                    Debug.DrawLine(parent_position, child_position, Color.red,100f);
+                    //Debug.DrawLine(parent_position, child_position, Color.red,100f);
 
                     traversability_matrix[best_neighbor[0], best_neighbor[1]] = 1f;
                     filled_blocks += 1;
@@ -284,5 +298,33 @@ public class SpanningTree : MonoBehaviour
             }
         }
         return neighbors;
+    }
+
+    Vector3 coord_to_vec(int[] coord)
+    {
+       return new Vector3(terrain_manager.myInfo.get_x_pos(coord[0]), 0f, terrain_manager.myInfo.get_z_pos(coord[1]));
+    }
+
+    List<Vector3> dfs(int[] root)
+    {
+        List<Vector3> result = new List<Vector3>();
+        result.Add(coord_to_vec(root));
+        List<string> stack = new List<string>();
+        stack.Add(array_to_string(root));
+
+        while(stack.Count>0)
+        {
+            string node = stack[0];
+            stack.RemoveAt(0);
+            List<int[]> children = spanning_trees[node];
+            foreach(int[] child in children)
+            {
+                stack.Insert(0,array_to_string(child));
+            }
+            if(children.Count>0)
+            { result.Add(coord_to_vec(children[0])); }
+            
+        }
+        return result;
     }
 }
