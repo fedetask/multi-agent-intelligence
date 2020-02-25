@@ -1242,14 +1242,21 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 292624250}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ac0615546388c46a68ca4014cce1578b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   terrain_manager_game_object: {fileID: 1358011048}
-  friends: []
-  enemies: []
+  crash_timer: 0
+  crash_timer_threshold: 2
+  crash_correction_timer: 2
+  current_speed: 0
+  spanning_tree_object: {fileID: 2050282005}
+  verbose_path: []
+  path: []
+  path_initialized: 0
+  index_of_current_player: 0
 --- !u!114 &292624253
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1318,7 +1325,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 292624250}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3ea65b38d485c374caa584a03f1de571, type: 3}
   m_Name: 
@@ -19322,7 +19329,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1056475042}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3ea65b38d485c374caa584a03f1de571, type: 3}
   m_Name: 
@@ -19410,14 +19417,21 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1056475042}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ac0615546388c46a68ca4014cce1578b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   terrain_manager_game_object: {fileID: 1358011048}
-  friends: []
-  enemies: []
+  crash_timer: 0
+  crash_timer_threshold: 2
+  crash_correction_timer: 2
+  current_speed: 0
+  spanning_tree_object: {fileID: 2050282005}
+  verbose_path: []
+  path: []
+  path_initialized: 0
+  index_of_current_player: 0
 --- !u!4 &1069448166
 Transform:
   m_ObjectHideFlags: 0
@@ -38491,14 +38505,21 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1868622354}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ac0615546388c46a68ca4014cce1578b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   terrain_manager_game_object: {fileID: 1358011048}
-  friends: []
-  enemies: []
+  crash_timer: 0
+  crash_timer_threshold: 2
+  crash_correction_timer: 2
+  current_speed: 0
+  spanning_tree_object: {fileID: 2050282005}
+  verbose_path: []
+  path: []
+  path_initialized: 0
+  index_of_current_player: 0
 --- !u!114 &1868622357
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -38567,7 +38588,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1868622354}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3ea65b38d485c374caa584a03f1de571, type: 3}
   m_Name: 
