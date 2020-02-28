@@ -48,7 +48,7 @@ public class SpanningTree : MonoBehaviour
             roots[i][1] = myInfo.get_j_index(position.z);
             spanning_trees[array_to_string(roots[i], i)] = new List<int[]>();
             traversability_matrix[roots[i][0], roots[i][1]] = 1f;
-            //keys[i].Add(roots[i]);
+            keys[i].Add(roots[i]);
             i++;
         }
         
@@ -58,8 +58,13 @@ public class SpanningTree : MonoBehaviour
         starting_pos = myInfo.start_pos;
 
         generate_Spanning_Trees();
-        draw_debug();
         check_unicity();
+        GraphSpanningTrees graph = new GraphSpanningTrees(spanning_trees, roots);
+        GeneticSpanningTrees genetic = new GeneticSpanningTrees(graph);
+        genetic.Optimize(100);
+        GraphSpanningTrees best = genetic.Best();
+        Debug.Log("BEST: "+best.costs.Max());
+        best.Draw(myInfo);
     }
 
 
@@ -72,12 +77,6 @@ public class SpanningTree : MonoBehaviour
     int manhattan_Distance(int[] pos1,int[] pos2)
     {
         return Mathf.Abs(pos1[0] - pos2[0]) + Mathf.Abs(pos1[1] - pos2[1]);
-    }
-
-
-    string array_to_string(int[] array, int agent_idx)
-    {
-        return array[0] + "," + array[1]+":"+agent_idx;
     }
 
     void generate_Spanning_Trees()
@@ -100,7 +99,6 @@ public class SpanningTree : MonoBehaviour
                 }
             }
         }
-        Debug.Log("Total empty blocks: "+(traversability_matrix.Length - filled_blocks));
         int[][] last_node = new int[number_of_agents][];
         for (int i = 0; i < last_node.Length; i++) {
             last_node[i] = new int[2] { roots[i][0], roots[i][1] };
@@ -170,12 +168,20 @@ public class SpanningTree : MonoBehaviour
                     traversability_matrix[b[0], b[1]] = 1f;
                     keys[agent_idx].Add(a);
                     keys[agent_idx].Add(b);
+                    //Debug.DrawLine(point2vec(node_hill), point2vec(next_node), Color.red, 100f);
                     break;
                 }
             }
             node_hill = next_node;
         }
         return filled_blocks;
+    }
+
+    Vector3 point2vec(int[] point) {
+        float x = terrain_manager.myInfo.get_x_pos(point[0]);
+        float z = terrain_manager.myInfo.get_z_pos(point[1]);
+        Vector3 res = new Vector3(x, 0, z);
+        return res;
     }
 
     int expand_random(int agent_idx) {
@@ -244,6 +250,12 @@ public class SpanningTree : MonoBehaviour
         return neighbors;
     }
 
+    string array_to_string(int[] array, int agent_idx) {
+        return array[0] + "," + array[1]+":"+agent_idx;
+    }
+    string array_to_string(int[] array) {
+        return array[0] + "," + array[1];
+    }
 
     void draw_debug() {
         TerrainInfo myInfo = terrain_manager.myInfo;
@@ -257,7 +269,6 @@ public class SpanningTree : MonoBehaviour
                     Vector3 to = new Vector3(myInfo.get_x_pos(child[0]), 0, myInfo.get_z_pos(child[1]));
                     Debug.DrawLine(from, to, colors[agent], 100f);
                 }
-
             }
         }
     }
