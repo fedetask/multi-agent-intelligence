@@ -7,13 +7,13 @@ public partial class GeneticSpanningTrees {
 
     int nagents;
     System.Random random;
-    List<GraphSpanningTrees> population = new List<GraphSpanningTrees>();
+    public List<GraphSpanningTrees> population = new List<GraphSpanningTrees>();
 
-    private int population_size = 60;
+    private int population_size = 50;
     private float initial_p_crossover = 0.5f;
-    private float initial_p_mutation = 1f;
+    private float initial_p_mutation = 0.5f;
     private float p_mutation, p_crossover;
-    private float selection_survivors = 0.3f;
+    private float selection_survivors = 0.35f;
 
     public GeneticSpanningTrees(GraphSpanningTrees graph) {
         this.nagents = graph.roots.Length;
@@ -21,7 +21,7 @@ public partial class GeneticSpanningTrees {
         p_mutation = initial_p_mutation;
         p_crossover = initial_p_crossover;
         population.Add(graph);
-        graph.ComputeMaxCosts();
+        graph.ComputeSubtreeCosts();
         graph.ComputeCosts();
     }
 
@@ -32,13 +32,15 @@ public partial class GeneticSpanningTrees {
             GraphSpanningTrees offspring = population[pop_idx].Clone();
             
             // Perform mutation
-            int tree = SampleFromCost(offspring.costs, false);
+            //int tree = SampleFromCost(offspring.costs, false);
+            int tree = random.Next(offspring.roots.Length);
             if (Bernoulli(p_mutation)) {
                 PerformMutation(offspring, tree);
             }
 
             // Perform crossover
-            tree = SampleFromCost(offspring.costs, true);
+            //tree = SampleFromCost(offspring.costs, true);
+            tree = random.Next(offspring.roots.Length);
             if (Bernoulli(p_crossover)) {
                 PerformCrossover(offspring, tree);
             }
@@ -51,7 +53,7 @@ public partial class GeneticSpanningTrees {
     private List<GraphSpanningTrees> ApplySelection() {
         int survivors = Mathf.Max((int) (population_size * selection_survivors), 1);
         foreach (GraphSpanningTrees graph in population) {
-            graph.ComputeMaxCosts();
+            graph.ComputeSubtreeCosts();
             graph.ComputeCosts();
         }
         population = population.OrderBy(g => g.costs.Max()).ToList();
@@ -64,8 +66,8 @@ public partial class GeneticSpanningTrees {
             population = ApplySelection();
             int offsprings = population_size - population.Count;
             population.AddRange(CreateOffspring(offsprings));
-            p_mutation -= initial_p_mutation / generations;
-            p_crossover -= initial_p_crossover / generations;
+            //p_mutation -= initial_p_mutation / generations;
+            //p_crossover -= initial_p_crossover / generations;
         }
     }
 
@@ -73,7 +75,7 @@ public partial class GeneticSpanningTrees {
         float best_cost = float.MaxValue;
         GraphSpanningTrees best = null;
         foreach (GraphSpanningTrees graph in population) {
-            graph.ComputeMaxCosts();
+            graph.ComputeSubtreeCosts();
             graph.ComputeCosts();
             if (graph.costs.Max() < best_cost) {
                 best_cost = graph.costs.Max();
@@ -98,7 +100,7 @@ public partial class GeneticSpanningTrees {
                     if (tree != agent && graph.Contains(cell, tree)) {
                         // Then this node is a candidate
                         Node other = graph.GetNode(cell, tree);
-                        if (other.parent != null) { // Roots are not candidate for mutations
+                        if (other.parent != null && node.parent != null) { // Roots are not candidate for mutations
                             candidates.Add(new Node[] {node, other});
                         }
                     }
@@ -109,33 +111,6 @@ public partial class GeneticSpanningTrees {
             }
         }
         return candidates;
-    }
-
-    private void MoveRoot(GraphSpanningTrees graph, int agent) {
-        Node[] nodes = graph.GetAllNodes(agent).ToArray();
-        if (nodes.Length == 1) { return; }
-        Node new_root;
-        int new_root_idx;
-        do {
-            new_root_idx = random.Next(nodes.Length);
-            new_root = nodes[new_root_idx];
-        }while (new_root.parent == null); // Don't select current root
-        Node cur = new_root;
-        Node prev = null;
-        int cont = 0;
-        while(cur.parent != null) {
-            cur.childs.Add(cur.parent);
-            cur.parent.childs.Remove(cur);
-            Node parent = cur.parent;
-            cur.parent = prev;
-            prev = cur;
-            cur = parent;
-            if (cont++ == graph.nodes.Count) {
-                Debug.Log("INF LOOP");
-                return;
-            }
-        }
-        graph.roots[agent] = new_root;
     }
 
     private List<Node[]> MutationCandidates(GraphSpanningTrees graph, int agent) {
@@ -152,7 +127,7 @@ public partial class GeneticSpanningTrees {
                 if (graph.Contains(cell, agent)) {
                     // Then this node is a candidate
                     Node other = graph.GetNode(cell, agent);
-                    if (other.parent != null && !node.childs.Contains(other)) { // Roots are not candidate for mutations
+                    if (other.parent != null && !node.childs.Contains(other) && node.parent != null) { // Roots are not candidate for mutations
                         candidates.Add(new Node[] {node, other});
                     }
                 }
@@ -214,11 +189,11 @@ public partial class GeneticSpanningTrees {
         return rand < p;
     }
 
-    private int SampleFromCost(float[] costs, bool ascending) {
+    private int SampleFromCost(float[] costs, bool invert) {
         float[] distribution = costs.Clone() as float[];
-        if (!ascending) {
+        if (!invert) {
             for (int i = 0; i < distribution.Length; i++) {
-                distribution[i] = costs[costs.Length - 1 - i];
+                distribution[i] = 1.0f / distribution[i];
             }
         }
         // Normalize

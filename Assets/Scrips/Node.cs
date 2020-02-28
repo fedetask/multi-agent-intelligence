@@ -23,7 +23,7 @@ public class Node {
             cloned_childs.Add(cloned_child);
         }
         clone.childs = cloned_childs;
-        clone.path_costs = new List<float>(path_costs);
+        clone.path_costs = path_costs == null ? null : new List<float>(path_costs);
         return clone;
     }
     public override bool Equals(object obj) {

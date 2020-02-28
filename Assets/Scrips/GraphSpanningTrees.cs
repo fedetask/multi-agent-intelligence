@@ -27,8 +27,6 @@ public class GraphSpanningTrees {
             }
         }
         this.nodes = DictionaryFromGraph(this.roots); 
-
-        ComputeMaxCosts();
     }
 
     public GraphSpanningTrees() {}
@@ -51,29 +49,50 @@ public class GraphSpanningTrees {
         nodes.Add(KeyOf(node.cell, node.agent), node);
     }
 
-    public void ComputeMaxCosts() {
+    public void ComputeSubtreeCosts() {
+        float turn180penalty = 10.0f;
         for (int agent = 0; agent < nagents; agent++) {
-            Stack<Node> stack = new Stack<Node>();
+            int cont = 0;
+            InitCosts(agent);
             HashSet<Node> to_visit = GetAllNodes(agent);
-            stack.Push(roots[agent]);
-            while(stack.Count > 0) {
-                Node node = stack.Peek();
-                int unvisited_childs = 0;
-                foreach (Node child in node.childs) {
+            Node cur = roots[agent];
+            bool started = false;
+            while (roots[agent].childs.Count > 0 && (!started || cur.parent != null)) {
+                started = true;
+                bool has_unvisited = false;
+                foreach (Node child in cur.childs) {
                     if (to_visit.Contains(child)) {
-                        stack.Push(child);
-                        unvisited_childs++;
+                        cur = child;
+                        has_unvisited = true;
                         to_visit.Remove(child);
+                        break;
                     }
                 }
-                if (unvisited_childs == 0) {
-                    stack.Pop();
-                    node.path_costs = new List<float>(node.childs.Count);
-                    for (int child_idx = 0; child_idx < node.childs.Count; child_idx++) {
-                        node.path_costs.Add(1 + node.childs[child_idx].MaxCostPath());
+                if (!has_unvisited) {
+                    int cur_idx = cur.parent.childs.IndexOf(cur);
+                    // If the node doesn't have children we have to turn back
+                    if (cur.childs.Count == 0) {
+                        cur.parent.path_costs[cur_idx] += 1 + turn180penalty;
+                    } else {
+                        cur.parent.path_costs[cur_idx] += 1 + cur.path_costs.Sum();   
                     }
+                    cur = cur.parent;
                 }
+                cont++; 
             }
+        }
+    }
+
+    public void InitCosts(int agent) {
+        Queue<Node> queue = new Queue<Node>();
+        queue.Enqueue(roots[agent]);
+        while (queue.Count > 0) {
+            Node node = queue.Dequeue();
+            node.path_costs = new List<float>();
+            foreach (Node child in node.childs) {
+                node.path_costs.Add(1);
+                queue.Enqueue(child);
+            }  
         }
     }
 
@@ -83,41 +102,38 @@ public class GraphSpanningTrees {
             costs[i] = PathCost(i);
         }
     }
-
-    public float MaxPathCost() {
-        float max = float.MinValue;
-        for (int i = 0; i < roots.Length; i++) {
-            float cost = PathCost(i);
-            max = Mathf.Max(max, cost);
-        }
-        return max;
-    }
     public float PathCost(int agent) {
-        float cost = 0;
-        Node root = roots[agent];
-        Stack<Node> stack =  new Stack<Node>();
+        return roots[agent].path_costs.Sum();
+    }
+
+    public List<Vector3> GetFullPath(TerrainInfo info, int agent) {
+        List<Vector3> res = new List<Vector3>();
         HashSet<Node> to_visit = GetAllNodes(agent);
-        stack.Push(root);
-        while (stack.Count > 0) {
-            Node node = stack.Peek();
+        Node cur = roots[agent];
+        while (to_visit.Count > 1) {
+            res.Add(Node2Vector3(cur, info));
+            List<Node> childs_sorted = cur.childs.OrderBy(c => c.MaxCostPath()).ToList();
             int unvisited_childs = 0;
-            foreach (Node child in node.childs.OrderBy(n => n.MaxCostPath()).ToList()) { // Take minimum
+            for(int i = 0; i < childs_sorted.Count; i++) {
+                Node child = childs_sorted[i];
                 if (to_visit.Contains(child)) {
-                    to_visit.Remove(child);
+                    cur = child;
                     unvisited_childs++;
-                    stack.Push(child);
-                    cost++;
+                    to_visit.Remove(child);
+                    break;
                 }
             }
-            if (unvisited_childs == 0) {
-                cost ++;
-                stack.Pop();
-            }
-            if (to_visit.Count == 0) {
-                break;
+            if (unvisited_childs == 0) { // Come back
+                cur = cur.parent;
             }
         }
-        return cost;
+        return res;
+    }
+
+    private Vector3 Node2Vector3(Node node, TerrainInfo info) {
+        float x = info.get_x_pos(node.cell[0]);
+        float z = info.get_z_pos(node.cell[1]);
+        return new Vector3(x, 0, z);
     }
 
     public GraphSpanningTrees Clone() {
@@ -128,7 +144,7 @@ public class GraphSpanningTrees {
             graph.roots[i] = roots[i].Clone();
         }
         graph.nodes = DictionaryFromGraph(graph.roots);
-        graph.costs = costs.Clone() as float[];
+        graph.costs = costs == null ? null : costs.Clone() as float[];
         return graph;
     }
 
@@ -144,7 +160,7 @@ public class GraphSpanningTrees {
                 foreach (Node child in node.childs) {
                     queue.Enqueue(child);
                     Vector3 child_coords = new Vector3(info.get_x_pos(child.cell[0]), 0, info.get_z_pos(child.cell[1]));
-                    Debug.DrawLine(node_coords, child_coords, colors[i], 100f);
+                    Debug.DrawLine(node_coords, child_coords, colors[i], 1000f);
                 }
             } 
         }

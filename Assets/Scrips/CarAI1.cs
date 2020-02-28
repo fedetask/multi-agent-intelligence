@@ -36,7 +36,7 @@ namespace UnityStandardAssets.Vehicles.Car
         {
             // get the car controller
             m_Car = GetComponent<CarController>();
-
+            Time.timeScale = 10;
 
             terrain_manager = terrain_manager_game_object.GetComponent<TerrainManager>();
 
@@ -161,7 +161,6 @@ namespace UnityStandardAssets.Vehicles.Car
             { steering = 0; }
 
             // this is how you control the car
-            Debug.Log("Steering:" + steering + " Acceleration:" + acceleration);
             m_Car.Move(steering, acceleration, acceleration, 0f);
             //m_Car.Move(0f, -1f, 1f, 0f);
 
