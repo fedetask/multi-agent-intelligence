@@ -10,10 +10,10 @@ public partial class GeneticSpanningTrees {
     public List<GraphSpanningTrees> population = new List<GraphSpanningTrees>();
 
     private int population_size = 50;
-    private float initial_p_crossover = 0.5f;
-    private float initial_p_mutation = 0.5f;
+    private float initial_p_crossover = 0.8f;
+    private float initial_p_mutation = 0.8f;
     private float p_mutation, p_crossover;
-    private float selection_survivors = 0.35f;
+    private float selection_survivors = 0.15f;
 
     public GeneticSpanningTrees(GraphSpanningTrees graph) {
         this.nagents = graph.roots.Length;

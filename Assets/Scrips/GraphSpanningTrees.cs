@@ -112,7 +112,7 @@ public class GraphSpanningTrees {
         Node cur = roots[agent];
         while (to_visit.Count > 1) {
             res.Add(Node2Vector3(cur, info));
-            List<Node> childs_sorted = cur.childs.OrderBy(c => c.MaxCostPath()).ToList();
+            List<Node> childs_sorted = cur.childs.OrderBy(c => c.path_costs.Sum()).ToList();
             int unvisited_childs = 0;
             for(int i = 0; i < childs_sorted.Count; i++) {
                 Node child = childs_sorted[i];
