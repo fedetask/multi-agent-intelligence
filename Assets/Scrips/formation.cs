@@ -39,7 +39,7 @@ namespace UnityStandardAssets.Vehicles.Car
         {
             Vector3 perpendicular = Vector3.Cross(Vector3.up, leader_orientation); //right orientation
             RaycastHit hit_right;
-            var mask = ~(1 << LayerMask.NameToLayer("Ingore Raycast")); // Take the mask corresponding to the layer with Name Cube Walls
+            var mask = ~(1 << LayerMask.NameToLayer("Inore Raycast")); // Take the mask corresponding to the layer with Name Cube Walls
             //var mask = ~((1 << LayerMask.NameToLayer("Player")) | (1 << LayerMask.NameToLayer("Ignore Raycast")));
             Physics.Raycast(leader_position, perpendicular, out hit_right,mask);
             RaycastHit hit_left;
