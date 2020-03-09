@@ -11455,7 +11455,7 @@ GameObject:
   - component: {fileID: 314973314}
   - component: {fileID: 314973316}
   - component: {fileID: 314973315}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: HealthBG
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -23021,7 +23021,7 @@ MonoBehaviour:
   leader_speed: 0
   friends: []
   enemies: []
-  acceleration_coefficient: 0.01
+  acceleration_coefficient: 0.1
   formation_game_object: {fileID: 382516422}
 --- !u!114 &458510688
 MonoBehaviour:
@@ -29132,7 +29132,7 @@ GameObject:
   - component: {fileID: 651230575}
   - component: {fileID: 651230574}
   - component: {fileID: 651230573}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: HealthBar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -58671,7 +58671,7 @@ GameObject:
   - component: {fileID: 1284354401}
   - component: {fileID: 1284354400}
   - component: {fileID: 1284354399}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Terrain (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -83839,7 +83839,7 @@ MonoBehaviour:
   leader_speed: 0
   friends: []
   enemies: []
-  acceleration_coefficient: 0.01
+  acceleration_coefficient: 0.1
   formation_game_object: {fileID: 382516422}
 --- !u!114 &1471962244
 MonoBehaviour:
@@ -85799,7 +85799,7 @@ GameObject:
   - component: {fileID: 1745939061}
   - component: {fileID: 1745939060}
   - component: {fileID: 1745939059}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: 'HealthCanvas '
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -101639,7 +101639,7 @@ MonoBehaviour:
   leader_speed: 0
   friends: []
   enemies: []
-  acceleration_coefficient: 0.01
+  acceleration_coefficient: 0.1
   formation_game_object: {fileID: 382516422}
 --- !u!114 &1902951897
 MonoBehaviour:
@@ -102525,7 +102525,7 @@ MonoBehaviour:
   leader_speed: 0
   friends: []
   enemies: []
-  acceleration_coefficient: 0.01
+  acceleration_coefficient: 0.1
   formation_game_object: {fileID: 382516422}
 --- !u!114 &1993684193
 MonoBehaviour:

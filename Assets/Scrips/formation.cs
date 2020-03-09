@@ -11,7 +11,7 @@ namespace UnityStandardAssets.Vehicles.Car
         public float leader_speed;
         public Vector3 previous_position;
         public int number_of_agents = 4;
-        public float max_length = 40;
+        public float max_length = 80;
         public List<Vector3> agent_positions;
 
         bool initialized = false;
@@ -37,6 +37,7 @@ namespace UnityStandardAssets.Vehicles.Car
 
         private float[] max_distances(Vector3 leader_orientation, Vector3 leader_position)
         {
+            float margin = 5f;
             Vector3 perpendicular = Vector3.Cross(Vector3.up, leader_orientation); //right orientation
             RaycastHit hit_right;
             var mask = ~(1 << LayerMask.NameToLayer("Ingore Raycast")); // Take the mask corresponding to the layer with Name Cube Walls
@@ -44,8 +45,8 @@ namespace UnityStandardAssets.Vehicles.Car
             Physics.Raycast(leader_position, perpendicular, out hit_right,mask);
             RaycastHit hit_left;
             Physics.Raycast(leader_position, -perpendicular, out hit_left,mask);
-            float right = Mathf.Min(max_length, hit_right.distance);
-            float left = Mathf.Min(max_length, hit_left.distance);
+            float right = Mathf.Min(max_length, hit_right.distance-margin);
+            float left = Mathf.Min(max_length, hit_left.distance-margin);
             return new float[2] { left, right };
         }
 
