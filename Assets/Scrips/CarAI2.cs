@@ -83,7 +83,7 @@ namespace UnityStandardAssets.Vehicles.Car
 
             for (int i = 0; i < verbose_path.Count-1; i++)
             {
-                Debug.DrawLine(verbose_path[i], verbose_path[i + 1], Color.red, 100f);
+                //Debug.DrawLine(verbose_path[i], verbose_path[i + 1], Color.red, 100f);
             }
             path_initialized = true;
             return verbose_path;

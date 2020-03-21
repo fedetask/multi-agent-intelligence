@@ -13,8 +13,10 @@ namespace UnityStandardAssets.Vehicles.Car
         public int number_of_agents = 4;
         public float max_length = 80;
         public List<Vector3> agent_positions;
-
+        public bool dynamicLeader = false;
         bool initialized = false;
+
+        
         // Start is called before the first frame update
         void Start()
         {
@@ -22,7 +24,9 @@ namespace UnityStandardAssets.Vehicles.Car
             previous_position = leader_car.transform.position;
 
             float[] max_dist = max_distances(leader_orientation, previous_position);
+            
             agent_positions = line_positions(leader_orientation, previous_position, max_dist);
+            
 
            
 
@@ -32,12 +36,12 @@ namespace UnityStandardAssets.Vehicles.Car
 
         public Vector3 get_next_position(int agent_id)
         {
-            return agent_positions[agent_id];
+            return agent_positions[Mathf.Min(agent_positions.Count-1,agent_id)];
         }
 
         private float[] max_distances(Vector3 leader_orientation, Vector3 leader_position)
         {
-            float margin = 5f;
+            float margin = 4f;
             Vector3 perpendicular = Vector3.Cross(Vector3.up, leader_orientation); //right orientation
             RaycastHit hit_right;
             var mask = ~(1 << LayerMask.NameToLayer("Inore Raycast")); // Take the mask corresponding to the layer with Name Cube Walls
@@ -50,6 +54,7 @@ namespace UnityStandardAssets.Vehicles.Car
             return new float[2] { left, right };
         }
 
+       
         private List<Vector3> line_positions(Vector3 leader_orientation, Vector3 leader_position, float[] distances)
         {
             Vector3 perpendicular = Vector3.Cross(Vector3.up, leader_orientation);
@@ -57,7 +62,7 @@ namespace UnityStandardAssets.Vehicles.Car
             int number_of_robots_l = number_of_agents - number_of_robots_r;
             List<Vector3> positions = new List<Vector3>();
             
-            for (int i = 0; i < number_of_robots_r; i++)
+            for (int i = 0; i < number_of_robots_l; i++)
             {
                 Vector3 position = leader_position - perpendicular.normalized * distances[0] * (number_of_robots_l - i) / number_of_robots_l;
                 positions.Add(position);
@@ -86,11 +91,23 @@ namespace UnityStandardAssets.Vehicles.Car
                 Debug.Log("Friend size " + friends.Length);
                 foreach (GameObject obj in friends)
                 {
-
-                    CarAI4 script = obj.GetComponent<CarAI4>();
+                    
+                    CarAI5 script = obj.GetComponent<CarAI5>();
                     Debug.Log("Current object " + obj.name);
+                    
                     script.set_id(counter);
-
+                    if (dynamicLeader && counter == 1)
+                    {
+                        script.isLeader = true;
+                    }
+                    if(dynamicLeader && counter==0)
+                    {
+                        script.is_on_left = true;
+                    }
+                    if(dynamicLeader && counter==2)
+                    {
+                        script.is_on_right = true;
+                    }
                     counter += 1;
 
                 }

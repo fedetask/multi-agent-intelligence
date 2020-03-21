@@ -23239,6 +23239,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   terrain_manager_game_object: {fileID: 342108197}
+  game_manager_object: {fileID: 1981892161}
   visibility_corners: []
   tsp_path: []
   verbose_tsp_path: []
