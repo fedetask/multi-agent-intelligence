@@ -37,8 +37,8 @@ namespace UnityStandardAssets.Vehicles.Car
 
                 GameObject example_player = friends[2];
                 GameObject example_enemy = enemies[5];
-
-                path = GetMinimumCostPath(example_player.transform.position, example_enemy.transform.position);
+                float cost;
+                (cost, path) = GetMinimumCostPath(example_player.transform.position, example_enemy.transform.position);
                 for (int i = 0; i < path.Count - 1; i++)
                 {
                     Debug.DrawLine(path[i], path[i + 1], Color.yellow, 100f);
@@ -49,7 +49,7 @@ namespace UnityStandardAssets.Vehicles.Car
 
         }
 
-        public List<Vector3> GetMinimumCostPath(Vector3 from, Vector3 to)
+        public (float cost, List<Vector3> points) GetMinimumCostPath(Vector3 from, Vector3 to)
         {
             int from_i = terrainInfo.get_i_index(from.x);
             int from_j = terrainInfo.get_j_index(from.z);
@@ -58,7 +58,7 @@ namespace UnityStandardAssets.Vehicles.Car
 
 
 
-            List<Vector2Int> cells = GetMinimumCostPathCells(new Vector2Int(from_i, from_j), new Vector2Int(to_i, to_j),terrain_evaluator.evaluation_matrix);
+            (float cost, List<Vector2Int> cells) = GetMinimumCostPathCells(new Vector2Int(from_i, from_j), new Vector2Int(to_i, to_j),terrain_evaluator.evaluation_matrix);
             List<Vector3> path = new List<Vector3>();
             foreach (Vector2Int cell in cells)
             {
@@ -66,7 +66,7 @@ namespace UnityStandardAssets.Vehicles.Car
                 float z = terrainInfo.get_z_pos(cell.y);
                 path.Add(new Vector3(x, 0, z));
             }
-            return path;
+            return (cost, path);
         }
 
         private float h(Vector2Int from, Vector2Int goal)
@@ -74,7 +74,7 @@ namespace UnityStandardAssets.Vehicles.Car
             return DISTANCE_COST * (Mathf.Abs(goal.x - from.x) + Mathf.Abs(goal.y - from.y));
         }
 
-        private List<Vector2Int> GetMinimumCostPathCells(Vector2Int from, Vector2Int goal, float[,] cost_matrix)
+        private (float cost, List<Vector2Int> cells) GetMinimumCostPathCells(Vector2Int from, Vector2Int goal, float[,] cost_matrix)
         {
             int rows = cost_matrix.GetLength(0);
             int cols = cost_matrix.GetLength(1);
@@ -103,7 +103,7 @@ namespace UnityStandardAssets.Vehicles.Car
                 Vector2Int current = ArgMin(discovered_nodes, f_scores);
                 if (current.Equals(goal))
                 {
-                    return ReconstructPath(came_from, goal);
+                    return (g_scores[goal.x, goal.y], ReconstructPath(came_from, goal));
                 }
 
                 discovered_nodes.Remove(current);
@@ -123,7 +123,7 @@ namespace UnityStandardAssets.Vehicles.Car
                 }
             }
 
-            return null; // Failure
+            return (-1, null); // Failure
         }
 
         private Vector2Int ArgMin(HashSet<Vector2Int> discovered_nodes, float[,] f_scores)

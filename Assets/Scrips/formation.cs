@@ -15,7 +15,8 @@ namespace UnityStandardAssets.Vehicles.Car
         public List<Vector3> agent_positions;
         public bool dynamicLeader = false;
         bool initialized = false;
-
+        AStar aStar;
+        public GameObject aStar_game_object;
         
         // Start is called before the first frame update
         void Start()
@@ -26,11 +27,7 @@ namespace UnityStandardAssets.Vehicles.Car
             float[] max_dist = max_distances(leader_orientation, previous_position);
             
             agent_positions = line_positions(leader_orientation, previous_position, max_dist);
-            
-
-           
-
-
+            aStar = aStar_game_object.GetComponent<AStar>();
         }
 
 
@@ -81,6 +78,7 @@ namespace UnityStandardAssets.Vehicles.Car
 
 
 
+        GameObject current_target = null;
             // Update is called once per frame
         void Update()
         {
@@ -120,6 +118,28 @@ namespace UnityStandardAssets.Vehicles.Car
             float[] max_dist = max_distances(leader_orientation, previous_position);
             agent_positions = line_positions(leader_orientation, previous_position, max_dist);
 
+            List<GameObject> enemies = new List<GameObject>(GameObject.FindGameObjectsWithTag("Enemy"));
+            // If enemies doesn't contain current_target it means it was killed
+            if (current_target == null || !enemies.Contains(current_target)) {
+                (current_target, aStar.path) = get_next_target(enemies);
+            }
+
         }
+
+        (GameObject target, List<Vector3> path) get_next_target(List<GameObject> enemies) {
+            float min_cost = float.MaxValue;
+            GameObject best = null;
+            List<Vector3> path = null;
+            foreach (GameObject enemy in enemies) {
+                (float cost, List<Vector3> points) = aStar.GetMinimumCostPath(leader_car.transform.position, enemy.transform.position);
+                if (cost < min_cost) {
+                    min_cost = cost;
+                    best = enemy;
+                    path = points;
+                }
+            }
+            return (best, path);
+        }
+
         }
     }
