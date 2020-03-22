@@ -17,12 +17,12 @@ namespace UnityStandardAssets.Vehicles.Car
         public GameObject[] friends;
         public GameObject[] enemies;
         public float acceleration_coefficient;
-        public int id; // Identifies the car in the formation
+        public int id;  // Identifies the car in the formation
         public GameObject formation_game_object;
-        float time_buffer = 0.2f;
+        float time_buffer = 2f;
         float timer = 0f;
         float crash_timer = 0f;
-        
+        bool crashed = false;
         private List<Vector3> path_verbose = new List<Vector3>();
         bool initialized = false;
         private formation formation;
@@ -30,13 +30,15 @@ namespace UnityStandardAssets.Vehicles.Car
         private AStar a_star;
         public List<Vector3> path = new List<Vector3>();
         public float current_speed;
-        int path_counter = 0;
+        public int path_counter = 0;
         public float brake;
         public float acceleration;
-        bool crashed = false;
         public bool isLeader = false;
         public bool is_on_right;
         public bool is_on_left;
+        public float crash_correction_timer = 2f;
+        bool leader_mess = false;
+
         private void Start()
         {
 
@@ -83,7 +85,7 @@ namespace UnityStandardAssets.Vehicles.Car
                     free = false;
                     if (free == false)
                     {
-                        Debug.Log("We hit a " + rayhit.collider.name);
+                        //Debug.Log("We hit a " + rayhit.collider.name);
                     }
                 }
             }
@@ -118,11 +120,13 @@ namespace UnityStandardAssets.Vehicles.Car
                     current_speed = m_Car.CurrentSpeed;
                     Vector3 next_pos = path[path_counter];
 
-                    if (Vector3.Distance(transform.position, next_pos) < 5f)
+                    if (Vector3.Distance(transform.position, next_pos) <7f)
                     {
                         path_counter += 1;
                         next_pos = path[path_counter];
                     }
+                    
+                    
 
                     Debug.DrawLine(transform.position, next_pos, Color.white, 0.1f);
                     leader_speed = formation.leader_speed;
@@ -160,10 +164,36 @@ namespace UnityStandardAssets.Vehicles.Car
                         acceleration = -1f;
                     }
 
-                    //acceleration *= Mathf.Clamp(acceleration_coefficient * Vector3.Distance(transform.position, next_pos), 0, 1);
-                    steering = Mathf.Clamp(direction_angle, -m_Car.m_MaximumSteerAngle, m_Car.m_MaximumSteerAngle);// Mathf.Sign(acceleration);
+                    
 
-                    if(m_Car.CurrentSpeed>10f)
+
+                    //acceleration *= Mathf.Clamp(acceleration_coefficient * Vector3.Distance(transform.position, next_pos), 0, 1);
+                    steering = Mathf.Clamp(direction_angle, -m_Car.m_MaximumSteerAngle, m_Car.m_MaximumSteerAngle)*Mathf.Sign(acceleration);
+
+                    GameObject[] friends = GameObject.FindGameObjectsWithTag("Player");
+                    float max_distance = float.MinValue;
+                    GameObject max_distance_obj = new GameObject();
+                    foreach(GameObject obj in friends)
+                    {
+                        CarAI5 script = obj.GetComponent<CarAI5>();
+
+                        if(script.isLeader)
+                        { continue; }
+
+                        float distance = Vector3.Distance(transform.position, obj.transform.position);
+                        if(distance>max_distance && Vector3.Dot(transform.forward,obj.transform.position - transform.position)<0)
+                        {
+                            max_distance_obj = obj;
+                            max_distance = distance;
+                        }
+
+                    }
+                    Debug.DrawLine(transform.position, max_distance_obj.transform.position, Color.red, 0.1f);
+
+                  
+
+
+                    if (m_Car.CurrentSpeed > 10f || max_distance > 11f)
                     {
                         acceleration = 0f;
                         
@@ -173,6 +203,38 @@ namespace UnityStandardAssets.Vehicles.Car
                         brake = 0f;
                       
                     }
+
+                    if ((current_speed < 1f) && acceleration != 0) //|| (formation.leader_car.GetComponent<CarAI5>().current_speed<1f && formation.leader_car.GetComponent<CarAI5>().acceleration!=0)) //If we are going really slow, we very likely crashed -> start counting!
+                    {
+
+                        crash_timer += Time.deltaTime; //start counting
+
+                        if (crash_timer > time_buffer) //if we are going slow for a long enough time
+                        {
+                            crashed = true; //we crashed
+                        }
+
+                    }
+                    else
+                    {
+                        crash_timer = 0f; //else, all cool/false alarm, reset the timer
+                        leader_mess = false;
+                    }
+
+
+                    if (crashed) //If we crashed, time to correct it
+                    {
+                        crash_correction_timer -= Time.deltaTime; //start counting down
+                        acceleration = -acceleration; //Obviously, what we are doing atm does not work: try going the opposite way!
+                        steering = 0f;
+                        if (crash_correction_timer <= 0) //after we corrected for enough time
+                        {
+                            crash_correction_timer = 2f; //reset the correction timer
+                            crashed = false; //we are no longer in the crashing phase
+                            crash_timer = 0f;
+                        }
+                    }
+
                     m_Car.Move(steering, acceleration, acceleration, 0);
 
                 }
@@ -201,7 +263,7 @@ namespace UnityStandardAssets.Vehicles.Car
             path_verbose.Add(formation.get_next_position(id));
             if (path.Count > 0)
             {
-                if (Vector3.Distance(formation.get_next_position(id), path[path.Count - 1]) > 10f)
+                if (Vector3.Distance(formation.get_next_position(id), path[path.Count - 1]) > 5f)
                 {
                     path.Add(formation.get_next_position(id));
                 }
@@ -227,6 +289,7 @@ namespace UnityStandardAssets.Vehicles.Car
 
 
             brake = 0f;
+            /*
             if (is_to_the_right && is_to_the_front)
             {
                 steering = 1f;
@@ -248,9 +311,11 @@ namespace UnityStandardAssets.Vehicles.Car
                 steering = 1f; //it was 1f
                 acceleration = -1f;
             }
+            */
+            acceleration = 1;
 
             //acceleration *= Mathf.Clamp(acceleration_coefficient * Vector3.Distance(transform.position, next_pos), 0, 1);
-            steering = Mathf.Clamp(direction_angle, -m_Car.m_MaximumSteerAngle, m_Car.m_MaximumSteerAngle);// * Mathf.Sign(acceleration);
+            steering = Mathf.Clamp(direction_angle, -m_Car.m_MaximumSteerAngle, m_Car.m_MaximumSteerAngle)* Mathf.Sign(acceleration);
             
 
 
@@ -283,7 +348,7 @@ namespace UnityStandardAssets.Vehicles.Car
             {
                 dist *= -1;
             }
-            float offset = 1;
+            float offset = 3f;
             float ratio_max = 1.5f;
 
             float modifier;
@@ -301,13 +366,40 @@ namespace UnityStandardAssets.Vehicles.Car
             acceleration *= modifier;
             if (m_Car.CurrentSpeed > 15f)
             { acceleration = 0f; }
-            if (dist < 0)
+
+            //if(formation.leader_car.GetComponent<CarAI5>().crashed==false)
+            //{
+            if (dist < 0)// && leader_mess == false)
             {
                 Vector3 leader_forward = formation.leader_car.transform.forward;
                 float angle = Vector3.Angle(transform.forward, leader_forward) * Mathf.Sign(-transform.forward.x * leader_forward.z + transform.forward.z * leader_forward.x);
                 steering = angle;
                 brake = 1f;
             }
+            else if ((current_speed < 1f && dist > 3f && formation.leader_car.GetComponent<CarAI5>().acceleration == 0f)) //|| (formation.leader_car.GetComponent<CarAI5>().current_speed<1f && formation.leader_car.GetComponent<CarAI5>().acceleration!=0)) //If we are going really slow, we very likely crashed -> start counting!
+                {
+
+                    crash_timer += Time.deltaTime; //start counting
+
+                    if (crash_timer > time_buffer) //if we are going slow for a long enough time
+                    {
+                        crashed = true; //we crashed
+                    }
+
+                }
+                else
+                {
+                    crash_timer = 0f; //else, all cool/false alarm, reset the timer
+                    leader_mess = false;
+                }
+           // }
+           // else
+           // {
+           //     crashed = true;
+           // }
+
+            
+            /*
             else if(current_speed<0.2f) //we hit a wall
             {
 
@@ -340,10 +432,23 @@ namespace UnityStandardAssets.Vehicles.Car
                 }
                
             }
-           
-
+            */
             
-            if (timer > 1 && crashed==false)
+
+            if (crashed) //If we crashed, time to correct it
+            {
+                crash_correction_timer -= Time.deltaTime; //start counting down
+                acceleration = -acceleration; //Obviously, what we are doing atm does not work: try going the opposite way!
+                steering = 0f;       
+                if (crash_correction_timer <= 0) //after we corrected for enough time
+                {
+                    crash_correction_timer =2f; //reset the correction timer
+                    crashed = false; //we are no longer in the crashing phase
+                    crash_timer = 0f;
+                }
+            }
+
+            if (timer > 1)
             {
                 m_Car.Move(steering, acceleration, acceleration, brake);
             }
@@ -361,7 +466,7 @@ namespace UnityStandardAssets.Vehicles.Car
             Debug.DrawLine(left+new Vector3(0f,3f,0f), left + new Vector3(0f,3f,0f) + transform.forward * 4, Color.cyan, 0.1f);
             if(ray1)
             {
-                Debug.Log("Hit a hascrashed " + hit1.collider);
+                //Debug.Log("Hit a hascrashed " + hit1.collider);
                 if (hit1.distance < 5)
                 { return true; }
             }
@@ -388,7 +493,7 @@ namespace UnityStandardAssets.Vehicles.Car
                     free = false;
                     if (free == false)
                     {
-                        Debug.Log("We hit a " + rayhit.collider.name);
+                        //Debug.Log("We hit a " + rayhit.collider.name);
                     }
                 }
             }
@@ -418,7 +523,7 @@ namespace UnityStandardAssets.Vehicles.Car
                         free = false;
                         if (free == false)
                         {
-                            Debug.Log("We hit a " + rayhit.collider.name);
+                            //Debug.Log("We hit a " + rayhit.collider.name);
                         }
                     }
                 }
@@ -450,7 +555,7 @@ namespace UnityStandardAssets.Vehicles.Car
                     free = false;
                     if (free == false)
                     {
-                        Debug.Log("We hit a " + rayhit.collider.name);
+                        //Debug.Log("We hit a " + rayhit.collider.name);
                     }
                 }
             }

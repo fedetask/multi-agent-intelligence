@@ -8,7 +8,7 @@ namespace UnityStandardAssets.Vehicles.Car
     public class AStar : MonoBehaviour
     {
 
-        public float DISTANCE_COST = 0.5f;
+        public float DISTANCE_COST = 0f;
         public GameObject terrain_manager_game_object;
 
         private TerrainManager terrainManager;
@@ -41,12 +41,30 @@ namespace UnityStandardAssets.Vehicles.Car
                 (cost, path) = GetMinimumCostPath(example_player.transform.position, example_enemy.transform.position);
                 for (int i = 0; i < path.Count - 1; i++)
                 {
-                    Debug.DrawLine(path[i], path[i + 1], Color.yellow, 100f);
+                    Debug.DrawLine(path[i], path[i + 1], Color.yellow, 5f);
                 }
                 Debug.DrawLine(path.Last(), path.Last() + new Vector3(5, 0, 5), Color.red, 100f);
             }
+            
 
+        }
 
+        public float trimPath(List<Vector3> points, GameObject enemy)
+        {
+            float final_cost = 0;
+            Vector3 enemy_location = enemy.transform.position;
+            for (int i=0; i<points.Count; i++)
+            {
+                Vector3 point = points[i];
+                var mask = ~(1 << LayerMask.NameToLayer("Inore Raycast"));
+                bool ray = Physics.Raycast(point, enemy_location, mask);
+                if (!ray)
+                { break; }
+                final_cost += terrain_evaluator.evaluation_matrix[terrainInfo.get_i_index(point.x), terrainInfo.get_j_index(point.z)];
+
+            }
+
+            return final_cost;
         }
 
         public (float cost, List<Vector3> points) GetMinimumCostPath(Vector3 from, Vector3 to)
@@ -72,6 +90,16 @@ namespace UnityStandardAssets.Vehicles.Car
         private float h(Vector2Int from, Vector2Int goal)
         {
             return DISTANCE_COST * (Mathf.Abs(goal.x - from.x) + Mathf.Abs(goal.y - from.y));
+        }
+
+        public void update_map(List<GameObject> enemies)
+        {
+            List<Vector3> turret_locations = new List<Vector3>();
+            foreach (GameObject enemy in enemies)
+            {
+                turret_locations.Add(enemy.transform.position);
+            }
+            terrain_evaluator.evaluation_matrix = terrain_evaluator.evaluate_board(terrainInfo.traversability, turret_locations);
         }
 
         private (float cost, List<Vector2Int> cells) GetMinimumCostPathCells(Vector2Int from, Vector2Int goal, float[,] cost_matrix)

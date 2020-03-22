@@ -34,7 +34,7 @@ namespace UnityStandardAssets.Vehicles.Car
             {
                 for (int j = 0; j < traversability_matrix.GetLength(1); j++)
                 {
-                    Debug.Log("At (" + i + ", " + j +") : " +  evaluation_matrix[i,j]);
+                    //Debug.Log("At (" + i + ", " + j +") : " +  evaluation_matrix[i,j]);
                 }
             }
 
@@ -49,7 +49,7 @@ namespace UnityStandardAssets.Vehicles.Car
 
         }
 
-        private float[,] evaluate_board(float[,] traversability_matrix, List<Vector3> turrets)
+        public float[,] evaluate_board(float[,] traversability_matrix, List<Vector3> turrets)
         {
             float[,] result = new float[traversability_matrix.GetLength(0), traversability_matrix.GetLength(1)];
             for(int i =0; i <traversability_matrix.GetLength(0); i++)
@@ -70,7 +70,7 @@ namespace UnityStandardAssets.Vehicles.Car
         }
 
         //if there exists a line of sight, return true.
-        private bool line_of_sight(Vector3 current_location, Vector3 turret_location)
+        public bool line_of_sight(Vector3 current_location, Vector3 turret_location)
         {
            
             float margin = 4f;

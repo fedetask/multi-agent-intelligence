@@ -17,7 +17,9 @@ namespace UnityStandardAssets.Vehicles.Car
         bool initialized = false;
         AStar aStar;
         public GameObject aStar_game_object;
-        
+        public GameObject[] friends;
+        private int total_number_of_enemies=8;
+
         // Start is called before the first frame update
         void Start()
         {
@@ -84,14 +86,11 @@ namespace UnityStandardAssets.Vehicles.Car
         {
             if(!initialized)
             {
-                GameObject[] friends = GameObject.FindGameObjectsWithTag("Player");
+                friends = GameObject.FindGameObjectsWithTag("Player");
                 int counter = 0;
-                Debug.Log("Friend size " + friends.Length);
                 foreach (GameObject obj in friends)
                 {
-                    
                     CarAI5 script = obj.GetComponent<CarAI5>();
-                    Debug.Log("Current object " + obj.name);
                     
                     script.set_id(counter);
                     if (dynamicLeader && counter == 1)
@@ -120,7 +119,9 @@ namespace UnityStandardAssets.Vehicles.Car
 
             List<GameObject> enemies = new List<GameObject>(GameObject.FindGameObjectsWithTag("Enemy"));
             // If enemies doesn't contain current_target it means it was killed
-            if (current_target == null || !enemies.Contains(current_target)) {
+            if (current_target == null || !enemies.Contains(current_target) || enemies.Count<total_number_of_enemies) {
+                aStar.update_map(enemies);
+                total_number_of_enemies = enemies.Count;
                 (current_target, aStar.path) = get_next_target(enemies);
             }
 
@@ -131,14 +132,40 @@ namespace UnityStandardAssets.Vehicles.Car
             GameObject best = null;
             List<Vector3> path = null;
             foreach (GameObject enemy in enemies) {
+               
                 (float cost, List<Vector3> points) = aStar.GetMinimumCostPath(leader_car.transform.position, enemy.transform.position);
+                Debug.Log("initial Cost " + cost);
+                cost = aStar.trimPath(points,enemy);
+                Debug.Log("final Cost " + cost);
                 if (cost < min_cost) {
                     min_cost = cost;
                     best = enemy;
                     path = points;
                 }
             }
-            return (best, path);
+            for (int i = 0; i < path.Count - 1; i++)
+            {
+                Debug.DrawLine(path[i], path[i + 1], Color.cyan, 30f);
+            }
+            if(enemies.Count==4)
+            {
+                //friends[0].GetComponent<CarAI5>().id = 2;
+                //friends[2].GetComponent<CarAI5>().id = 0;
+            }
+            
+            int counter = 0;
+            foreach (GameObject obj in friends)
+            {
+                CarAI5 script = obj.GetComponent<CarAI5>();
+                script.path_counter = 0;
+                if (script.isLeader)
+                {
+                    script.path=path;
+                }
+            }
+
+            Debug.Log("Best next enemy" + enemies.IndexOf(best));
+                return (best, path);
         }
 
         }

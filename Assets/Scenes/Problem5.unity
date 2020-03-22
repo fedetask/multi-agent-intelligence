@@ -17733,7 +17733,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 468917171}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 407.8, y: 0.0009150505, z: 85.1}
+  m_LocalPosition: {x: 407.8, y: 0.0009150505, z: 85.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 108766666}
@@ -17795,7 +17795,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 468917171}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2be1b455fa5cd456c8bc235d1928780f, type: 3}
   m_Name: 
@@ -17826,11 +17826,13 @@ MonoBehaviour:
   A_star_object: {fileID: 1037376809}
   path: []
   current_speed: 0
+  path_counter: 0
   brake: 0
   acceleration: 0
   isLeader: 0
   is_on_right: 0
   is_on_left: 0
+  crash_correction_timer: 2
 --- !u!114 &468917176
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18172,7 +18174,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 492361544}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2be1b455fa5cd456c8bc235d1928780f, type: 3}
   m_Name: 
@@ -18203,11 +18205,13 @@ MonoBehaviour:
   A_star_object: {fileID: 1037376809}
   path: []
   current_speed: 0
+  path_counter: 0
   brake: 0
   acceleration: 0
   isLeader: 0
   is_on_right: 0
   is_on_left: 0
+  crash_correction_timer: 2
 --- !u!114 &492361547
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -29834,7 +29838,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 792701568}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2be1b455fa5cd456c8bc235d1928780f, type: 3}
   m_Name: 
@@ -29865,11 +29869,13 @@ MonoBehaviour:
   A_star_object: {fileID: 1037376809}
   path: []
   current_speed: 0
+  path_counter: 0
   brake: 0
   acceleration: 0
   isLeader: 0
   is_on_right: 0
   is_on_left: 0
+  crash_correction_timer: 2
 --- !u!114 &792701571
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -29996,7 +30002,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 792701568}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 419, y: 0.0009150505, z: 85}
+  m_LocalPosition: {x: 420.7, y: 0.0009150505, z: 84.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 2002911785}
@@ -52107,6 +52113,8 @@ MonoBehaviour:
   max_length: 10
   agent_positions: []
   dynamicLeader: 1
+  aStar_game_object: {fileID: 1037376809}
+  friends: []
 --- !u!4 &1328958901
 Transform:
   m_ObjectHideFlags: 0
