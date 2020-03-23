@@ -124,6 +124,19 @@ namespace UnityStandardAssets.Vehicles.Car
                 total_number_of_enemies = enemies.Count;
                 (current_target, aStar.path) = get_next_target(enemies);
             }
+            
+
+
+            if (leader_car==null)
+            {
+                friends = GameObject.FindGameObjectsWithTag("Player");
+                
+               CarAI5 script = friends[0].GetComponent<CarAI5>();
+               script.path_counter = 0;
+
+                script.isLeader = true;
+               
+            }
 
         }
 
@@ -152,7 +165,8 @@ namespace UnityStandardAssets.Vehicles.Car
                 //friends[0].GetComponent<CarAI5>().id = 2;
                 //friends[2].GetComponent<CarAI5>().id = 0;
             }
-            
+            friends = GameObject.FindGameObjectsWithTag("Player");
+
             int counter = 0;
             foreach (GameObject obj in friends)
             {

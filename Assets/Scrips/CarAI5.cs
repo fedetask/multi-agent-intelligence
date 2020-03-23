@@ -38,7 +38,8 @@ namespace UnityStandardAssets.Vehicles.Car
         public bool is_on_left;
         public float crash_correction_timer = 2f;
         bool leader_mess = false;
-
+        float dist;
+        float offset;
         private void Start()
         {
 
@@ -104,6 +105,8 @@ namespace UnityStandardAssets.Vehicles.Car
         {
             if(a_star.initialized)
             {
+                if (isLeader)
+                { path = a_star.path; }
                 if (!initialized)
                 {
                     initialized = true;
@@ -180,7 +183,8 @@ namespace UnityStandardAssets.Vehicles.Car
                         if(script.isLeader)
                         { continue; }
 
-                        float distance = Vector3.Distance(transform.position, obj.transform.position);
+                        //float distance = Vector3.Distance(transform.position, obj.transform.position);
+                        float distance = script.dist-script.offset;
                         if(distance>max_distance && Vector3.Dot(transform.forward,obj.transform.position - transform.position)<0)
                         {
                             max_distance_obj = obj;
@@ -193,7 +197,7 @@ namespace UnityStandardAssets.Vehicles.Car
                   
 
 
-                    if (m_Car.CurrentSpeed > 10f || max_distance > 11f)
+                    if (m_Car.CurrentSpeed > 8f || max_distance > 5f)
                     {
                         acceleration = 0f;
                         
@@ -343,12 +347,12 @@ namespace UnityStandardAssets.Vehicles.Car
             //m_Car.Move(0f, -1f, 1f, 0f);
 
             float speed_ratio = car_velocity.magnitude / target_velocity.magnitude;
-            float dist = Vector3.Distance(transform.position, formation.get_next_position(id));
+            dist = Vector3.Distance(transform.position, formation.get_next_position(id));
             if (formation.leader_car.transform.InverseTransformDirection(transform.position - formation.leader_car.transform.position).z > 0)
             {
                 dist *= -1;
             }
-            float offset = 3f;
+            offset = 1f;
             float ratio_max = 1.5f;
 
             float modifier;
@@ -364,7 +368,7 @@ namespace UnityStandardAssets.Vehicles.Car
                 modifier = 0;
             }
             acceleration *= modifier;
-            if (m_Car.CurrentSpeed > 15f)
+            if (m_Car.CurrentSpeed > 10f)
             { acceleration = 0f; }
 
             //if(formation.leader_car.GetComponent<CarAI5>().crashed==false)
