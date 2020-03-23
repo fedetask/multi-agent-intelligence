@@ -34,19 +34,7 @@ namespace UnityStandardAssets.Vehicles.Car
                 initialized = true;
                 enemies = GameObject.FindGameObjectsWithTag("Enemy");
                 friends = GameObject.FindGameObjectsWithTag("Player");
-
-                GameObject example_player = friends[2];
-                GameObject example_enemy = enemies[5];
-                float cost;
-                (cost, path) = GetMinimumCostPath(example_player.transform.position, example_enemy.transform.position);
-                for (int i = 0; i < path.Count - 1; i++)
-                {
-                    Debug.DrawLine(path[i], path[i + 1], Color.yellow, 5f);
-                }
-                Debug.DrawLine(path.Last(), path.Last() + new Vector3(5, 0, 5), Color.red, 100f);
             }
-            
-
         }
 
         public float trimPath(List<Vector3> points, GameObject enemy)
@@ -76,7 +64,11 @@ namespace UnityStandardAssets.Vehicles.Car
 
 
 
-            (float cost, List<Vector2Int> cells) = GetMinimumCostPathCells(new Vector2Int(from_i, from_j), new Vector2Int(to_i, to_j),terrain_evaluator.evaluation_matrix);
+            (float cost, List<Vector2Int> cells) = GetMinimumCostPathCells(new Vector2Int(from_i, from_j),
+                                                                            new Vector2Int(to_i, to_j),
+                                                                            to,
+                                                                            terrain_evaluator.evaluation_matrix);
+                        
             List<Vector3> path = new List<Vector3>();
             foreach (Vector2Int cell in cells)
             {
@@ -102,7 +94,7 @@ namespace UnityStandardAssets.Vehicles.Car
             terrain_evaluator.evaluation_matrix = terrain_evaluator.evaluate_board(terrainInfo.traversability, turret_locations);
         }
 
-        private (float cost, List<Vector2Int> cells) GetMinimumCostPathCells(Vector2Int from, Vector2Int goal, float[,] cost_matrix)
+        private (float cost, List<Vector2Int> cells) GetMinimumCostPathCells(Vector2Int from, Vector2Int goal, Vector3 target_pos, float[,] cost_matrix)
         {
             int rows = cost_matrix.GetLength(0);
             int cols = cost_matrix.GetLength(1);
@@ -134,7 +126,12 @@ namespace UnityStandardAssets.Vehicles.Car
                     return (g_scores[goal.x, goal.y], ReconstructPath(came_from, goal));
                 }
 
+                // If from current position we can see the target this is the goal
+                if (see_target(current, target_pos)) {
+                    return (g_scores[current.x, current.y], ReconstructPath(came_from, current));
+                }
                 discovered_nodes.Remove(current);
+
                 foreach (Vector2Int n in GetNeighbors(current, cost_matrix))
                 {
                     float tentative_score = g_scores[current.x, current.y] + DISTANCE_COST + cost_matrix[n.x, n.y];
@@ -151,6 +148,7 @@ namespace UnityStandardAssets.Vehicles.Car
                 }
             }
 
+            Debug.LogError("ERROR NO PATH FOUND");
             return (-1, null); // Failure
         }
 
@@ -202,6 +200,17 @@ namespace UnityStandardAssets.Vehicles.Car
                 res.Add(n);
             }
             return res;
+        }
+
+        private bool see_target(Vector2Int current, Vector3 target) {
+            Vector3 current_in_space = new Vector3(terrainInfo.get_x_pos(current.x), 0, terrainInfo.get_z_pos(current.y));
+            Vector3 direction = target - current_in_space;
+            Vector3 normal = new Vector3(-direction.z, direction.y, direction.x).normalized;
+            var mask = ~(1 << LayerMask.NameToLayer("Ignore Raycast"));
+            bool free = ! Physics.Linecast(current_in_space, target, mask);
+
+            if (free) { Debug.DrawLine(current_in_space, target, Color.black, 30f); }
+            return free;
         }
 
 
