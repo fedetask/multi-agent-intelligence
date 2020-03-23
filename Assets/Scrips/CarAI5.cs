@@ -128,7 +128,7 @@ namespace UnityStandardAssets.Vehicles.Car
                         path_counter += 1;
                         next_pos = path[path_counter];
                     }
-                    
+                    formation.leader_index = path_counter;
                     
 
                     Debug.DrawLine(transform.position, next_pos, Color.white, 0.1f);

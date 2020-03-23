@@ -19,7 +19,7 @@ namespace UnityStandardAssets.Vehicles.Car
         public GameObject aStar_game_object;
         public GameObject[] friends;
         private int total_number_of_enemies=8;
-
+        public int leader_index;
         // Start is called before the first frame update
         void Start()
         {
@@ -110,6 +110,21 @@ namespace UnityStandardAssets.Vehicles.Car
                 }
                 initialized = true;
             }
+
+
+            if (leader_car == null)
+            {
+                friends = GameObject.FindGameObjectsWithTag("Player");
+
+                CarAI5 script = friends[0].GetComponent<CarAI5>();
+                script.path_counter = leader_index;
+
+                script.isLeader = true;
+                leader_car = friends[0];
+                leader_orientation = leader_car.transform.forward;
+
+            }
+
             leader_orientation = leader_car.transform.forward;
             leader_speed = Vector3.Distance(leader_car.transform.position,previous_position) / Time.deltaTime; 
 
@@ -127,16 +142,6 @@ namespace UnityStandardAssets.Vehicles.Car
             
 
 
-            if (leader_car==null)
-            {
-                friends = GameObject.FindGameObjectsWithTag("Player");
-                
-               CarAI5 script = friends[0].GetComponent<CarAI5>();
-               script.path_counter = 0;
-
-                script.isLeader = true;
-               
-            }
 
         }
 
