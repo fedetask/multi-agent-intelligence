@@ -110,7 +110,19 @@ namespace UnityStandardAssets.Vehicles.Car
             if (!path_initialized)
             {
                 spanning_tree = spanning_tree_object.GetComponent<SpanningTree>();
-                verbose_path = compute_paths(spanning_tree);
+                verbose_path = new List<Vector3>();
+                if (index_of_current_player!=0)
+                {
+                    verbose_path.Add(new Vector3(terrain_manager.myInfo.get_x_pos(8), 0f, terrain_manager.myInfo.get_z_pos(8)));
+                    verbose_path.Add(new Vector3(terrain_manager.myInfo.get_x_pos(9), 0f, terrain_manager.myInfo.get_z_pos(8)));
+                    verbose_path.AddRange(compute_paths(spanning_tree));
+                }
+                else
+
+                {
+                    verbose_path=compute_paths(spanning_tree);
+                }
+                
             }
 
            
@@ -119,8 +131,8 @@ namespace UnityStandardAssets.Vehicles.Car
            
 
             Vector3 next_pos = verbose_path[next_index];
-
-            
+            Debug.Log("next pos at " + terrain_manager.myInfo.get_i_index(next_pos.x) + ", " + terrain_manager.myInfo.get_j_index(next_pos.z));
+            Debug.DrawLine(transform.position, next_pos, Color.red, 0.1f);
 
             Vector3 direction = (next_pos - transform.position).normalized;
             current_speed = m_Car.CurrentSpeed;
