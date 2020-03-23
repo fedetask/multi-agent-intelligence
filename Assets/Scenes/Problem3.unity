@@ -26324,12 +26324,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd8f88dbef86049759c7f8b36661fe22, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  terrain_manager_game_object: {fileID: 0}
+  terrain_manager_game_object: {fileID: 1966902054}
   crash_timer: 0
   crash_timer_threshold: 2
   crash_correction_timer: 2
   current_speed: 0
-  visibility_game_object: {fileID: 0}
+  visibility_game_object: {fileID: 581873772}
   verbose_path: []
   path: []
   path_initialized: 0
@@ -83158,7 +83158,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed951abcb196b40f38b3699dfa82c76c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  terrain_filename: text/terrain3
+  terrain_filename: text/terrain3_new
   myInfo:
     file_name: 
     x_low: 0
