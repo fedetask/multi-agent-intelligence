@@ -105,7 +105,7 @@ namespace UnityStandardAssets.Vehicles.Car
                 {
                     if (x_coord == 1 && z_coord == 10) // change indeces here if you wanna check something (draw what it sees)
                     {
-                        Debug.DrawLine(current_location, location, Color.cyan, 10f);
+                        //Debug.DrawLine(current_location, location, Color.cyan, 10f);
                     }
                     danger += 1;
                 }

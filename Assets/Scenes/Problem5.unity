@@ -52110,11 +52110,12 @@ MonoBehaviour:
   leader_speed: 0
   previous_position: {x: 0, y: 0, z: 0}
   number_of_agents: 2
-  max_length: 10
+  max_length: 4
   agent_positions: []
   dynamicLeader: 1
   aStar_game_object: {fileID: 1037376809}
   friends: []
+  leader_index: 0
 --- !u!4 &1328958901
 Transform:
   m_ObjectHideFlags: 0
@@ -67872,7 +67873,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed951abcb196b40f38b3699dfa82c76c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  terrain_filename: text/terrain5
+  terrain_filename: text/terrain5_new
   myInfo:
     file_name: 
     x_low: 0

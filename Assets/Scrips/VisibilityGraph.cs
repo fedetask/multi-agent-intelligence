@@ -44,13 +44,13 @@ namespace UnityStandardAssets.Vehicles.Car
         {
             string scene_name = SceneManager.GetActiveScene().name;
 
-            int scene_number = Int32.Parse(scene_name.Substring(scene_name.Length - 1));
-
+            //int scene_number = Int32.Parse(scene_name.Substring(scene_name.Length - 1));
+            int scene_number = 2;
             gm = game_manager_object.GetComponent<GameManager>();
 
             Debug.Log("scene number " + scene_number);
             terrain_manager = terrain_manager_game_object.GetComponent<TerrainManager>();
-            start_pos = terrain_manager.myInfo.start_pos + new Vector3(-margin, 0f, -margin);
+            start_pos = terrain_manager.myInfo.start_pos + new Vector3(-2*margin, 0f, -2*margin);
             visibility_corners = new List<Vector3>();
             visibility_corners.Add(start_pos);
             visibility_corners.AddRange(GetCorners());

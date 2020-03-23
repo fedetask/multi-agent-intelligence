@@ -14,7 +14,7 @@ namespace UnityStandardAssets.Vehicles.Car
         public float max_length = 80;
         public List<Vector3> agent_positions;
         public bool dynamicLeader = false;
-        bool initialized = false;
+        public bool initialized = false;
         AStar aStar;
         public GameObject aStar_game_object;
         public GameObject[] friends;
@@ -40,7 +40,7 @@ namespace UnityStandardAssets.Vehicles.Car
 
         private float[] max_distances(Vector3 leader_orientation, Vector3 leader_position)
         {
-            float margin = 4f;
+            float margin = 6f;
             Vector3 perpendicular = Vector3.Cross(Vector3.up, leader_orientation); //right orientation
             RaycastHit hit_right;
             var mask = ~(1 << LayerMask.NameToLayer("Inore Raycast")); // Take the mask corresponding to the layer with Name Cube Walls
@@ -90,9 +90,20 @@ namespace UnityStandardAssets.Vehicles.Car
                 int counter = 0;
                 foreach (GameObject obj in friends)
                 {
-                    CarAI5 script = obj.GetComponent<CarAI5>();
+                    CarAI5 script = new CarAI5();
+                    CarAI4 script4 = new CarAI4();
+                    if (!dynamicLeader)
+                    {
+                        script4 = obj.GetComponent<CarAI4>();
+                        script4.set_id(counter);
+                    }
+                    else
+                    {
+                        script = obj.GetComponent<CarAI5>();
+                        script.set_id(counter);
+                    }
                     
-                    script.set_id(counter);
+                   
                     if (dynamicLeader && counter == 1)
                     {
                         script.isLeader = true;
@@ -108,6 +119,7 @@ namespace UnityStandardAssets.Vehicles.Car
                     counter += 1;
 
                 }
+                Debug.Log("finishin initialization");
                 initialized = true;
             }
 
@@ -131,15 +143,19 @@ namespace UnityStandardAssets.Vehicles.Car
             previous_position = leader_car.transform.position;
             float[] max_dist = max_distances(leader_orientation, previous_position);
             agent_positions = line_positions(leader_orientation, previous_position, max_dist);
+            if(dynamicLeader)
+            {
+                List<GameObject> enemies = new List<GameObject>(GameObject.FindGameObjectsWithTag("Enemy"));
+                // If enemies doesn't contain current_target it means it was killed
+                if (current_target == null || !enemies.Contains(current_target) || enemies.Count < total_number_of_enemies)
+                {
+                    aStar.update_map(enemies);
+                    total_number_of_enemies = enemies.Count;
+                    (current_target, aStar.path) = get_next_target(enemies);
+                }
 
-            List<GameObject> enemies = new List<GameObject>(GameObject.FindGameObjectsWithTag("Enemy"));
-            // If enemies doesn't contain current_target it means it was killed
-            if (current_target == null || !enemies.Contains(current_target) || enemies.Count<total_number_of_enemies) {
-                aStar.update_map(enemies);
-                total_number_of_enemies = enemies.Count;
-                (current_target, aStar.path) = get_next_target(enemies);
             }
-            
+
 
 
 

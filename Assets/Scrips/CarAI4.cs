@@ -17,7 +17,7 @@ namespace UnityStandardAssets.Vehicles.Car
         public GameObject[] friends;
         public GameObject[] enemies;
         public float acceleration_coefficient;
-        private int id; // Identifies the car in the formation
+        public int id; // Identifies the car in the formation
         public GameObject formation_game_object;
         float time_buffer = 5f;
         float timer = 0f;
@@ -86,133 +86,143 @@ namespace UnityStandardAssets.Vehicles.Car
 
         private void FixedUpdate()
         {
-
-            if (target_pos == null) {
+            if (formation.initialized)
+            {
+                if (target_pos == null)
+                {
+                    target_pos = formation.get_next_position(id);
+                    car_pos = transform.position;
+                }
+                target_velocity = (formation.get_next_position(id) - target_pos) / Time.deltaTime;
+                car_velocity = (transform.position - car_pos) / Time.deltaTime;
                 target_pos = formation.get_next_position(id);
                 car_pos = transform.position;
-            }
-            target_velocity = (formation.get_next_position(id) - target_pos) / Time.deltaTime;
-            car_velocity = (transform.position - car_pos) / Time.deltaTime;
-            target_pos = formation.get_next_position(id);
-            car_pos = transform.position;
 
-            timer += Time.deltaTime;
-            // Execute your path here
-            // ...
-            path_verbose.Add(formation.get_next_position(id));
-            if (path.Count>0)
-            {
-                if(Vector3.Distance(formation.get_next_position(id), path[path.Count - 1]) > 10f)
+                timer += Time.deltaTime;
+                // Execute your path here
+                // ...
+                path_verbose.Add(formation.get_next_position(id));
+                if (path.Count > 0)
+                {
+                    if (Vector3.Distance(formation.get_next_position(id), path[path.Count - 1]) > 15f)
+                    {
+                        path.Add(formation.get_next_position(id));
+                    }
+                }
+                if (path.Count == 0)
                 {
                     path.Add(formation.get_next_position(id));
                 }
+
+                Vector3 next_pos = get_next_on_path();//get_next_position(id); // formation.get_next_position(id);
+
+                Debug.DrawLine(transform.position, next_pos, Color.white, 0.1f);
+                leader_speed = formation.leader_speed;
+                Vector3 direction = (next_pos - transform.position).normalized;
+                bool is_to_the_right = Vector3.Dot(direction, transform.right) > 0f;
+                bool is_to_the_front = Vector3.Dot(direction, transform.forward) > 0f;
+
+                float steering = 0f;
+                float acceleration = 0;
+                Vector3 current_direction = transform.forward.normalized;
+
+                float direction_angle = Vector3.Angle(current_direction, direction) * Mathf.Sign(-current_direction.x * direction.z + current_direction.z * direction.x);
+
+
+                float brake = 0f;
+                if (is_to_the_right && is_to_the_front)
+                {
+                    steering = 1f;
+                    acceleration = 1f;
+                }
+                else if (is_to_the_right && !is_to_the_front)
+                {
+                    //steering = -1f;
+                    steering = -1f;
+                    acceleration = -1f;
+                }
+                else if (!is_to_the_right && is_to_the_front)
+                {
+                    steering = -1f;
+                    acceleration = 1f;
+                }
+                else if (!is_to_the_right && !is_to_the_front)
+                {
+                    steering = 1f; //it was 1f
+                    acceleration = -1f;
+                }
+
+                //acceleration *= Mathf.Clamp(acceleration_coefficient * Vector3.Distance(transform.position, next_pos), 0, 1);
+                //steering = Mathf.Clamp(direction_angle, -m_Car.m_MaximumSteerAngle, m_Car.m_MaximumSteerAngle);// * Mathf.Sign(acceleration);
+                Debug.Log("Steering " + steering);
+                if (acceleration == 0)
+                {
+                    Debug.Log("I have zero acceleration");
+                }
+
+
+                //if (m_Car.CurrentSpeed > 20f + Vector3.Distance(transform.position, next_pos))
+                //{
+                //    brake = 1;
+                //}
+
+                //if (Mathf.Abs(steering) < 0.2f)
+                //{ steering = 0; }
+
+                //Vector3 relative_pos = formation.leader_car.transform.InverseTransformPoint(transform.position);
+                //Vector3 relative_pos = formation.previous_position.InverseTransformPoint(transform.position);
+                //if (timer >= time_buffer && Vector3.Dot(transform.position - formation.leader_car.transform.position, formation.leader_orientation) >= 0)
+                //{
+                //    brake = 1f;
+                //    Debug.DrawLine(transform.position, formation.leader_car.transform.position, Color.yellow, 0.1f);
+                //    Debug.DrawLine(formation.leader_car.transform.position, formation.leader_car.transform.position + 100f * formation.leader_orientation, Color.yellow, 0.1f);
+                //}
+                //if(timer >= time_buffer && Vector3.Dot(direction, transform.forward)<0f)
+                //if (timer >= time_buffer && relative_pos.z >=0 )
+
+                // this is how you control the car
+
+                //m_Car.Move(0f, -1f, 1f, 0f);
+
+                float speed_ratio = car_velocity.magnitude / target_velocity.magnitude;
+                float dist = Vector3.Distance(transform.position, formation.get_next_position(id));
+                if (formation.leader_car.transform.InverseTransformDirection(transform.position - formation.leader_car.transform.position).z > 0)
+                {
+                    dist *= -1;
+                }
+                float offset = 25;
+                float ratio_max = 1.5f;
+
+                float modifier;
+                if (dist > 0)
+                {
+                    modifier = Mathf.Atan(100 * (dist - offset)) / (0.5f * Mathf.PI);
+                    //modifier += Mathf.Atan(10 * (-speed_ratio + 2)) / (0.5f * Mathf.PI);
+                    //modifier /= 1;
+                    Debug.DrawLine(transform.position, target_pos, Color.black, 0.1f);
+                }
+                else
+                {
+                    modifier = 0;
+                }
+                acceleration *= modifier;
+
+                if (dist < 0)
+                {
+                    Vector3 leader_forward = formation.leader_car.transform.forward;
+                    float angle = Vector3.Angle(transform.forward, leader_forward) * Mathf.Sign(-transform.forward.x * leader_forward.z + transform.forward.z * leader_forward.x);
+                    steering = angle;
+                    brake = 1f;
+                }
+
+
+                Debug.Log("ACC MODIFIER " + modifier);
+                if (timer > 2)
+                {
+                    m_Car.Move(steering, acceleration, acceleration, brake);
+                }
             }
-            if(path.Count==0)
-            {
-                path.Add(formation.get_next_position(id));
-            }
-
-            Vector3 next_pos = get_next_on_path();//get_next_position(id); // formation.get_next_position(id);
-
-            Debug.DrawLine(transform.position, next_pos, Color.white, 0.1f);
-            leader_speed = formation.leader_speed;
-            Vector3 direction = (next_pos - transform.position).normalized;
-            bool is_to_the_right = Vector3.Dot(direction, transform.right) > 0f;
-            bool is_to_the_front = Vector3.Dot(direction, transform.forward) > 0f;
-
-            float steering = 0f;
-            float acceleration = 0;
-            Vector3 current_direction = transform.forward.normalized;
-
-            float direction_angle = Vector3.Angle(current_direction, direction) * Mathf.Sign(-current_direction.x * direction.z + current_direction.z * direction.x);
-
-
-            float brake = 0f;
-            if (is_to_the_right && is_to_the_front)
-            {
-                steering = 1f;
-                acceleration = 1f;
-            }
-            else if (is_to_the_right && !is_to_the_front)
-            {
-                //steering = -1f;
-                steering = -1f;
-                acceleration = -1f;
-            }
-            else if (!is_to_the_right && is_to_the_front)
-            {
-                steering = -1f;
-                acceleration = 1f;
-            }
-            else if (!is_to_the_right && !is_to_the_front)
-            {
-                steering = 1f; //it was 1f
-                acceleration = -1f;
-            }
-
-            //acceleration *= Mathf.Clamp(acceleration_coefficient * Vector3.Distance(transform.position, next_pos), 0, 1);
-            //steering = Mathf.Clamp(direction_angle, -m_Car.m_MaximumSteerAngle, m_Car.m_MaximumSteerAngle);// * Mathf.Sign(acceleration);
-            Debug.Log("Steering " + steering);
-            if (acceleration == 0)
-            {
-                Debug.Log("I have zero acceleration");
-            }
-
-
-            //if (m_Car.CurrentSpeed > 20f + Vector3.Distance(transform.position, next_pos))
-            //{
-            //    brake = 1;
-            //}
-
-            //if (Mathf.Abs(steering) < 0.2f)
-            //{ steering = 0; }
-
-            //Vector3 relative_pos = formation.leader_car.transform.InverseTransformPoint(transform.position);
-            //Vector3 relative_pos = formation.previous_position.InverseTransformPoint(transform.position);
-            //if (timer >= time_buffer && Vector3.Dot(transform.position - formation.leader_car.transform.position, formation.leader_orientation) >= 0)
-            //{
-            //    brake = 1f;
-            //    Debug.DrawLine(transform.position, formation.leader_car.transform.position, Color.yellow, 0.1f);
-            //    Debug.DrawLine(formation.leader_car.transform.position, formation.leader_car.transform.position + 100f * formation.leader_orientation, Color.yellow, 0.1f);
-            //}
-            //if(timer >= time_buffer && Vector3.Dot(direction, transform.forward)<0f)
-            //if (timer >= time_buffer && relative_pos.z >=0 )
-
-            // this is how you control the car
-
-            //m_Car.Move(0f, -1f, 1f, 0f);
-
-            float speed_ratio = car_velocity.magnitude / target_velocity.magnitude;
-            float dist = Vector3.Distance(transform.position, formation.get_next_position(id));
-            if (formation.leader_car.transform.InverseTransformDirection(transform.position - formation.leader_car.transform.position).z > 0){
-                dist *= -1;
-            }
-            float offset = 20;
-            float ratio_max = 1.5f;
-
-            float modifier;
-            if (dist > 0) {
-                modifier = Mathf.Atan(100 * (dist - offset)) / (0.5f * Mathf.PI);
-                //modifier += Mathf.Atan(10 * (-speed_ratio + 2)) / (0.5f * Mathf.PI);
-                //modifier /= 1;
-                Debug.DrawLine(transform.position, target_pos, Color.black, 0.1f);
-            } else {
-                modifier = 0;
-            }
-            acceleration *= modifier;
             
-            if (dist < 0) {
-                Vector3 leader_forward = formation.leader_car.transform.forward;
-                float angle = Vector3.Angle(transform.forward, leader_forward) * Mathf.Sign(-transform.forward.x * leader_forward.z + transform.forward.z * leader_forward.x);
-                steering = angle;
-                brake = 1f;
-            }
-
-
-            Debug.Log("ACC MODIFIER "+modifier);
-            if (timer > 2) {
-                m_Car.Move(steering, acceleration, acceleration, brake);
-            }
         }
 
 

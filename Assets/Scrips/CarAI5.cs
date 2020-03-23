@@ -197,7 +197,7 @@ namespace UnityStandardAssets.Vehicles.Car
                   
 
 
-                    if (m_Car.CurrentSpeed > 8f || max_distance > 5f)
+                    if (m_Car.CurrentSpeed >14f || max_distance > 5f)
                     {
                         acceleration = 0f;
                         
@@ -368,7 +368,7 @@ namespace UnityStandardAssets.Vehicles.Car
                 modifier = 0;
             }
             acceleration *= modifier;
-            if (m_Car.CurrentSpeed > 10f)
+            if (m_Car.CurrentSpeed > 15f)
             { acceleration = 0f; }
 
             //if(formation.leader_car.GetComponent<CarAI5>().crashed==false)

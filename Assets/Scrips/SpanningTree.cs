@@ -14,7 +14,7 @@ namespace UnityStandardAssets.Vehicles.Car
         private float x_step;
         private float z_step;
         private Vector3 starting_pos;
-
+        public bool prior=false;
         public float[,] traversability_matrix;
 
         private int number_of_agents;
@@ -45,10 +45,33 @@ namespace UnityStandardAssets.Vehicles.Car
             i = 0;
             foreach (GameObject car in agents)
             {
-                Vector3 position = car.transform.position;
                 roots[i] = new int[2];
-                roots[i][0] = myInfo.get_i_index(position.x);
-                roots[i][1] = myInfo.get_j_index(position.z);
+                if (!prior)
+                {
+                    Vector3 position = car.transform.position;
+                    roots[i][0] = myInfo.get_i_index(position.x);
+                    roots[i][1] = myInfo.get_j_index(position.z);
+                    
+                }
+                else
+                {
+                    if(i==0)
+                    {
+                        roots[i][0] =10;
+                        roots[i][1] =9;
+                    }
+                    else if (i==1)
+                    {
+                        roots[i][0] = 11;
+                        roots[i][1] =9;
+                    }
+                    else
+                    {
+                        roots[i][0] = 12;
+                        roots[i][1] = 9;
+                    }
+                }
+                
                 spanning_trees[array_to_string(roots[i], i)] = new List<int[]>();
                 traversability_matrix[roots[i][0], roots[i][1]] = 1f;
                 //keys[i].Add(roots[i]);
@@ -62,26 +85,13 @@ namespace UnityStandardAssets.Vehicles.Car
 
             generate_Spanning_Trees();
             Color[] colors = new Color[] { Color.white, Color.yellow, Color.blue };
-            /*
-            for (i=0; i<3;i++)
-            {
-                foreach(int[] node in keys[i])
-                {
-                    List<int[]> node_children = spanning_trees[array_to_string(node)];
-                    Vector3 parent_position = new Vector3(myInfo.get_x_pos(node[0]), 0f, myInfo.get_z_pos(node[1]));
-                    foreach(int[] child in node_children)
-                    {
-                        Vector3 child_position = new Vector3(myInfo.get_x_pos(child[0]), 0f, myInfo.get_z_pos(child[1]));
-                        Debug.DrawLine(parent_position, child_position, colors[i], 100f);
-                    }
-                }
-            }
-            */
+           
 
 
             paths = new List<List<Vector3>>();
             for (i = 0; i < 3; i++)
             {
+               
                 paths.Add(dfs_recurs(roots[i], i));
                 Debug.Log("Path size " + i + " is " + paths[i].Count);
                 for (int j = 0; j < paths[i].Count; j++)
