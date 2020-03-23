@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
@@ -84,35 +84,32 @@ namespace UnityStandardAssets.Vehicles.Car
             starting_pos = myInfo.start_pos;
 
             generate_Spanning_Trees();
-            Color[] colors = new Color[] { Color.white, Color.yellow, Color.blue };
-           
 
-
+            GraphSpanningTrees base_graph = new GraphSpanningTrees(spanning_trees, roots);
+            base_graph.ComputeSubtreeCosts();
+            Debug.Log("BASE GRAPH COST: ");
+            for (i = 0; i < base_graph.roots.Length; i++) {
+                Debug.Log("     PATH "+i+" cost: "+base_graph.PathCost(i));
+            }
+            Debug.Log("-----------------------");
+            GeneticSpanningTrees genetic = new GeneticSpanningTrees(base_graph);
+            genetic.Optimize(100);
+            GraphSpanningTrees best = genetic.Best();
+            best.ComputeSubtreeCosts();
+            best.ComputeCosts();
+            best.Draw(myInfo);
             paths = new List<List<Vector3>>();
-            for (i = 0; i < 3; i++)
-            {
-               
-                paths.Add(dfs_recurs(roots[i], i));
-                Debug.Log("Path size " + i + " is " + paths[i].Count);
-                for (int j = 0; j < paths[i].Count; j++)
-                {
-                    Debug.DrawLine(paths[i][j], paths[i][j], Color.yellow, 100f);
-                }
+
+            for (i = 0; i < best.roots.Length; i++) {
+                paths.Add(best.GetFullPath(myInfo, i));
+                Debug.Log("PATH "+i+" cost: "+best.PathCost(i));
             }
 
-
-            draw_debug();
-            check_unicity();
-
             int counter = 0;
-            foreach (GameObject obj in agents)
-            {
+            foreach (GameObject obj in agents) {
                 CarAI1 script = obj.GetComponent<CarAI1>();
-                Debug.Log("Current object " + obj.name);
                 script.index_of_current_player = counter;
-
                 counter += 1;
-
             }
 
         }
@@ -156,7 +153,6 @@ namespace UnityStandardAssets.Vehicles.Car
                     }
                 }
             }
-            Debug.Log("Total empty blocks: " + (traversability_matrix.Length - filled_blocks));
             int[][] last_node = new int[number_of_agents][];
             for (int i = 0; i < last_node.Length; i++)
             {
@@ -393,16 +389,12 @@ namespace UnityStandardAssets.Vehicles.Car
             }
         }
 
-        bool check_unicity()
-        {
+        bool check_unicity() {
             Dictionary<string, bool> occupied = new Dictionary<string, bool>();
-            for (int i = 0; i < number_of_agents; i++)
-            {
+            for (int i = 0; i < number_of_agents; i++) {
                 List<int[]> points = keys[i];
-                foreach (int[] point in points)
-                {
-                    if (occupied.ContainsKey(array_to_string(point, i)))
-                    {
+                foreach (int[] point in points) {
+                    if (occupied.ContainsKey(array_to_string(point, i))) {
                         Debug.LogError("ERROR: point " + point[0] + "," + point[1] + " belongs to more than one path");
                         return false;
                     }
