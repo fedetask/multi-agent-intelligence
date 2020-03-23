@@ -17068,7 +17068,7 @@ GameObject:
   - component: {fileID: 347542476}
   - component: {fileID: 347542475}
   - component: {fileID: 347542474}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Terrain (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -17823,6 +17823,7 @@ MonoBehaviour:
   acceleration_coefficient: 0
   id: 0
   formation_game_object: {fileID: 1328958899}
+  crash_timer: 0
   A_star_object: {fileID: 1037376809}
   path: []
   current_speed: 0
@@ -17832,7 +17833,9 @@ MonoBehaviour:
   isLeader: 0
   is_on_right: 0
   is_on_left: 0
-  crash_correction_timer: 2
+  crash_correction_timer: 1
+  offset: 1
+  dist: 0
 --- !u!114 &468917176
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17852,8 +17855,8 @@ MonoBehaviour:
     time_array: []
     file_name: 
     json_string: 
-  RecordingOn: 1
-  PlaybackOn: 0
+  RecordingOn: 0
+  PlaybackOn: 1
   position_list: []
   rotation_list: []
   time_list: []
@@ -18202,6 +18205,7 @@ MonoBehaviour:
   acceleration_coefficient: 0
   id: 0
   formation_game_object: {fileID: 1328958899}
+  crash_timer: 0
   A_star_object: {fileID: 1037376809}
   path: []
   current_speed: 0
@@ -18211,7 +18215,9 @@ MonoBehaviour:
   isLeader: 0
   is_on_right: 0
   is_on_left: 0
-  crash_correction_timer: 2
+  crash_correction_timer: 1
+  offset: 1
+  dist: 0
 --- !u!114 &492361547
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18231,8 +18237,8 @@ MonoBehaviour:
     time_array: []
     file_name: 
     json_string: 
-  RecordingOn: 1
-  PlaybackOn: 0
+  RecordingOn: 0
+  PlaybackOn: 1
   position_list: []
   rotation_list: []
   time_list: []
@@ -29687,7 +29693,7 @@ GameObject:
   - component: {fileID: 769976106}
   - component: {fileID: 769976105}
   - component: {fileID: 769976104}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: EventSystem (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -29866,6 +29872,7 @@ MonoBehaviour:
   acceleration_coefficient: 0
   id: 0
   formation_game_object: {fileID: 1328958899}
+  crash_timer: 0
   A_star_object: {fileID: 1037376809}
   path: []
   current_speed: 0
@@ -29875,7 +29882,9 @@ MonoBehaviour:
   isLeader: 0
   is_on_right: 0
   is_on_left: 0
-  crash_correction_timer: 2
+  crash_correction_timer: 1
+  offset: 1
+  dist: 0
 --- !u!114 &792701571
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -29895,8 +29904,8 @@ MonoBehaviour:
     time_array: []
     file_name: 
     json_string: 
-  RecordingOn: 1
-  PlaybackOn: 0
+  RecordingOn: 0
+  PlaybackOn: 1
   position_list: []
   rotation_list: []
   time_list: []
@@ -40647,7 +40656,7 @@ GameObject:
   m_Component:
   - component: {fileID: 988655903}
   - component: {fileID: 988655902}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Directional Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -46279,7 +46288,7 @@ GameObject:
   - component: {fileID: 1126179208}
   - component: {fileID: 1126179207}
   - component: {fileID: 1126179206}
-  m_Layer: 5
+  m_Layer: 2
   m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -52113,8 +52122,11 @@ MonoBehaviour:
   max_length: 10
   agent_positions: []
   dynamicLeader: 1
+  initialized: 0
   aStar_game_object: {fileID: 1037376809}
   friends: []
+  total_number_of_enemies: 8
+  perpendicular_line: 1
 --- !u!4 &1328958901
 Transform:
   m_ObjectHideFlags: 0
@@ -67853,7 +67865,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1677047335}
   - component: {fileID: 1677047334}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: TerrainManager (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -68408,7 +68420,7 @@ GameObject:
   - component: {fileID: 1712461949}
   - component: {fileID: 1712461948}
   - component: {fileID: 1712461947}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: GameManager (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -78523,7 +78535,7 @@ GameObject:
   - component: {fileID: 1775333426}
   - component: {fileID: 1775333425}
   - component: {fileID: 1775333424}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Main Camera (2)
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
@@ -78781,7 +78793,7 @@ GameObject:
   - component: {fileID: 1836896014}
   - component: {fileID: 1836896013}
   - component: {fileID: 1836896012}
-  m_Layer: 5
+  m_Layer: 2
   m_Name: Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -110,7 +110,7 @@ namespace UnityStandardAssets.Vehicles.Car
                     danger += 1;
                 }
             }
-            return danger;
+            return Mathf.Pow(2,danger);
         }
     }
 
